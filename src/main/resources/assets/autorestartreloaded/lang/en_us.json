@@ -1,13 +1,3 @@
 {
-  "itemGroup.autorestartreloaded": "Example Mod Tab",
-  "block.autorestartreloaded.example_block": "Example Block",
-  "item.autorestartreloaded.example_item": "Example Item",
-
-  "autorestartreloaded.configuration.title": "Auto Restart Reloaded Configs",
-  "autorestartreloaded.configuration.section.autorestartreloaded.common.toml": "Auto Restart Reloaded Configs",
-  "autorestartreloaded.configuration.section.autorestartreloaded.common.toml.title": "Auto Restart Reloaded Configs",
-  "autorestartreloaded.configuration.items": "Item List",
-  "autorestartreloaded.configuration.logDirtBlock": "Log Dirt Block",
-  "autorestartreloaded.configuration.magicNumberIntroduction": "Magic Number Text",
-  "autorestartreloaded.configuration.magicNumber": "Magic Number"
+  "autorestartreloaded.configuration.restart_times": "Auto Restart Target Times"
 }
