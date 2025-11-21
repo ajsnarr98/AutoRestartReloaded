@@ -11,8 +11,8 @@
     "homepage": "https://stonecutter.kikugie.dev/",
     "sources": "https://codeberg.org/stonecutter/template-fabric"
   },
-  "license": "$license",
-  "icon": "assets/template/icon.png",
+  "license": "${license}",
+  "icon": "assets/autorestartreloaded/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

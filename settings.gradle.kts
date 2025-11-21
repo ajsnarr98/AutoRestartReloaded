@@ -14,8 +14,18 @@ plugins {
 
 stonecutter {
     create(rootProject) {
+        fun bothLoaders(vararg versions: String) {
+            val loaders = listOf("neoforge", "fabric")
+            for (loader in loaders) {
+                for (version in versions) {
+                    version("$version-$loader", version).buildscript = "build.$loader.gradle.kts"
+                }
+            }
+        }
+
         // See https://stonecutter.kikugie.dev/wiki/start/#choosing-minecraft-versions
-        versions("1.20.1-fabric", "1.21.1-fabric", "1.21.10-fabric", "1.21.10-neoforge")
+        bothLoaders("1.21.10")
+
         vcsVersion = "1.21.10-neoforge"
     }
 }

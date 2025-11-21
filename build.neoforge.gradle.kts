@@ -1,12 +1,11 @@
 plugins {
-    id("fabric-loom")
     id("net.neoforged.moddev")
 
     // `maven-publish`
     // id("me.modmuss50.mod-publish-plugin")
 }
 
-version = "${property("mod.version")}+${stonecutter.current.version}"
+version = "${property("mod.version")}+${stonecutter.current.version}-neoforge"
 base.archivesName = property("mod.id") as String
 //group = property("") as String
 
@@ -28,37 +27,40 @@ repositories {
     }
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
+    maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+}
+
+neoForge {
+    version = property("deps.neoforge") as String
+    validateAccessTransformers = true
+
+    if (hasProperty("deps.parchment")) parchment {
+        val (mc, ver) = (property("deps.parchment") as String).split(':')
+        mappingsVersion = ver
+        minecraftVersion = mc
+    }
+
+    runs {
+        register("client") {
+            gameDirectory = file("run/")
+            client()
+        }
+        register("server") {
+            gameDirectory = file("run/")
+            server()
+        }
+    }
+
+    mods {
+        register(property("mod.id") as String) {
+            sourceSet(sourceSets["main"])
+        }
+    }
+    sourceSets["main"].resources.srcDir("src/main/generated")
 }
 
 dependencies {
-    /**
-     * Fetches only the required Fabric API modules to not waste time downloading all of them for each version.
-     * @see <a href="https://github.com/FabricMC/fabric">List of Fabric API modules</a>
-     */
-    fun fapi(vararg modules: String) {
-        for (it in modules) modImplementation(fabricApi.module(it, property("deps.fabric_api") as String))
-    }
-
-    minecraft("com.mojang:minecraft:${stonecutter.current.version}")
-    mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
-
-    fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0")
-}
-
-loom {
-    fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json") // Useful for interface injection
-    accessWidenerPath = rootProject.file("src/main/resources/template.accesswidener")
-
-    decompilerOptions.named("vineflower") {
-        options.put("mark-corresponding-synthetics", "1") // Adds names to lambdas - useful for mixins
-    }
-
-    runConfigs.all {
-        ideConfigGenerated(true)
-        vmArgs("-Dmixin.debug.export=true") // Exports transformed classes for debugging
-        runDir = "../../run" // Shares the run directory between versions
-    }
+    implementation("com.cronutils:cron-utils:${property("deps.cronutils")}")
 }
 
 java {
@@ -69,10 +71,15 @@ java {
 
 tasks {
     processResources {
+        exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml")
+
         inputs.property("id", project.property("mod.id"))
         inputs.property("name", project.property("mod.name"))
         inputs.property("version", project.property("mod.version"))
         inputs.property("minecraft", project.property("mod.mc_dep"))
+        inputs.property("license", project.property("mod.license"))
+        inputs.property("author", project.property("mod.author"))
+        inputs.property("description", project.property("mod.description"))
 
         val props = mapOf(
             "id" to project.property("mod.id"),
@@ -84,20 +91,27 @@ tasks {
             "description" to project.property("mod.description"),
         )
 
-        filesMatching("fabric.mod.json") { expand(props) }
+        filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml")) { expand(props) }
 
         val mixinJava = "JAVA_${requiredJava.majorVersion}"
         filesMatching("*.mixins.json") { expand("java" to mixinJava) }
     }
 
-    // Builds the version into a shared folder in `build/libs/${mod version}/`
-    register<Copy>("buildAndCollect") {
-        group = "build"
-        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
-        dependsOn("build")
+    named("createMinecraftArtifacts") {
+        dependsOn("stonecutterGenerate")
     }
+
+//    // Builds the version into a shared folder in `build/libs/${mod version}/`
+//    register<Copy>("buildAndCollect") {
+//        group = "build"
+//        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
+//        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+//        dependsOn("build")
+//    }
 }
+
+// later, look back at this example
+// https://github.com/murderspagurder/mod-template-java/blob/main/build.fabric.gradle.kts
 
 /*
 // Publishes builds to Modrinth and Curseforge with changelog from the CHANGELOG.md file
