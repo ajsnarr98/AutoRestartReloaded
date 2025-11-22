@@ -76,7 +76,9 @@ tasks {
         inputs.property("id", project.property("mod.id"))
         inputs.property("name", project.property("mod.name"))
         inputs.property("version", project.property("mod.version"))
-        inputs.property("minecraft", project.property("mod.mc_dep"))
+        inputs.property("minecraft_version_range", project.property("deps.modloader-mc-version-range"))
+        inputs.property("fabric", project.property("deps.fabric-loader-range"))
+        inputs.property("neoforge", project.property("deps.neoforge"))
         inputs.property("license", project.property("mod.license"))
         inputs.property("author", project.property("mod.author"))
         inputs.property("description", project.property("mod.description"))
@@ -85,7 +87,9 @@ tasks {
             "id" to project.property("mod.id"),
             "name" to project.property("mod.id"),
             "version" to project.property("mod.version"),
-            "minecraft" to project.property("mod.mc_dep"),
+            "minecraft_version_range" to project.property("deps.modloader-mc-version-range"),
+            "fabric" to project.property("deps.fabric-loader-range"),
+            "neoforge" to project.property("deps.neoforge"),
             "license" to project.property("mod.license"),
             "author" to project.property("mod.author"),
             "description" to project.property("mod.description"),

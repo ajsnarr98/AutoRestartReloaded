@@ -16,12 +16,12 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.ajsnarr98.autorestartmod.TemplateMod"
+      "com.github.ajsnarr98.autorestartreloaded.TemplateMod"
     ]
   },
-  "accessWidener": "template.accesswidener",
+  "accessWidener": "autorestartreloaded.accesswidener",
   "depends": {
-    "fabricloader": ">=0.17",
-    "minecraft": "${minecraft}"
+    "fabricloader": "${fabric}",
+    "minecraft": "${minecraft_version_range}"
   }
 }
