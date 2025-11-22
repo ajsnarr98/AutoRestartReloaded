@@ -23,9 +23,11 @@ for (version in stonecutter.versions.map { it.version }.distinct()) tasks.regist
 // See https://stonecutter.kikugie.dev/wiki/config/params
 stonecutter parameters {
     constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "neoforge")
+
+    // Allow processing Minecraft core shaders
     filters.include("**/*.fsh", "**/*.vsh")
+
     swaps["minecraft"] = "\"${node.metadata.version}\";"
     swaps["modid"] = "\"${property("mod.id")}\";"
 //    constants["release"] = property("mod.id") != "template"
-//    dependencies["fapi"] = node.project.property("deps.fabric_api") as String
 }

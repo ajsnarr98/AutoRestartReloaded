@@ -71,7 +71,7 @@ java {
 
 tasks {
     processResources {
-        exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml")
+        exclude("**/fabric.mod.json", "**/*.accesswidener")
 
         inputs.property("id", project.property("mod.id"))
         inputs.property("name", project.property("mod.name"))
@@ -105,13 +105,13 @@ tasks {
         dependsOn("stonecutterGenerate")
     }
 
-//    // Builds the version into a shared folder in `build/libs/${mod version}/`
-//    register<Copy>("buildAndCollect") {
-//        group = "build"
-//        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
-//        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
-//        dependsOn("build")
-//    }
+    // Builds the version into a shared folder in `build/libs/${mod version}/`
+    register<Copy>("buildAndCollect") {
+        group = "build"
+        from(jar.map { it.archiveFile })
+        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+        dependsOn("build")
+    }
 }
 
 // later, look back at this example
