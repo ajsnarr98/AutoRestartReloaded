@@ -10,21 +10,24 @@ public class AutoRestartReloaded {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     private static AutoRestartReloaded INSTANCE = new AutoRestartReloaded();
+    public static AutoRestartReloaded getInstance() {
+        return INSTANCE;
+    }
 
     private RestartProcessor restartProcessor;
 
     /**
      * Initialize with the given config. This can be called multiple times.
      */
-    void initialize(QueudActionProvider actionProvider, Config config) {
+    public void initialize(QueudActionProvider actionProvider, Config config) {
         this.restartProcessor = new RestartProcessorImpl(actionProvider, config);
     }
 
-    void onServerTick(QueuedAction.RunContext context) {
+    public void onServerTick(QueuedAction.RunContext context) {
         this.restartProcessor.onServerTick(context);
     }
 
-    void onManualRestartCommand() {
+    public void onManualRestartCommand() {
         this.restartProcessor.triggerRestartForCommand();
     }
 }

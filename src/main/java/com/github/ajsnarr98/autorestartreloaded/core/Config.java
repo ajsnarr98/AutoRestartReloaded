@@ -22,7 +22,9 @@ public class Config {
     private final List<RestartMessage> restartCommandMessages;
     private final ZoneId timezone;
 
-    public Config(List<String> restartSchedule) {
+    public Config(
+            List<? extends String> restartSchedule
+    ) {
         this.cronRestartSchedule = restartSchedule.stream()
                 .map(Config::parseRestartTime)
                 .toList();
