@@ -17,10 +17,16 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
     private RestartType currentRestartType = RestartType.NONE;
     private Config config;
     private QueudActionProvider<T> actionProvider;
+    private Clock clock;
 
-    public RestartProcessorImpl(QueudActionProvider<T> actionProvider, Config config) {
+    public RestartProcessorImpl(
+            QueudActionProvider<T> actionProvider,
+            Config config,
+            Clock clock
+    ) {
         this.config = config;
         this.actionProvider = actionProvider;
+        this.clock = clock;
         setupQueueForScheduledTimes();
     }
 
@@ -32,7 +38,7 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
 
     @Override
     public void onServerTick(T context) {
-        long now = Instant.now().getEpochSecond();
+        long now = clock.getEpochSecond();
         if (nextQueueTime <= now) {
             mutex.lock();
             try {
@@ -64,7 +70,7 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
             clearQueue();
 
             ZoneId timezone = config.getTimezone();
-            ZonedDateTime now = ZonedDateTime.now(timezone);
+            ZonedDateTime now = clock.now(timezone);
             Optional<Long> nextTime = config.nextPreScheduledRestartTime(now);
             while (nextTime.isPresent()) {
                 // TODO use different messages
@@ -91,7 +97,7 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
      * @return true if restart was scheduled successfully, false if we need to pick a later restart time
      */
     private boolean scheduleRestartWithMessages(long restartTime, List<Config.RestartMessage> messages) {
-        long now = Instant.now().getEpochSecond();
+        long now = clock.getEpochSecond();
         long highestLeadingSeconds = 0;
 
         for (Config.RestartMessage message : messages) {

@@ -3,6 +3,8 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 //? neoforge {
 
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.core.Clock;
+import com.github.ajsnarr98.autorestartreloaded.core.RealClock;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.api.distmarker.Dist;
@@ -32,12 +34,14 @@ public class NeoforgeEntrypoint {
 
     public static class ModEventHandler {
         private final NeoforgeQueuedActionProvider actionProvider = new NeoforgeQueuedActionProvider();
+        private final Clock clock = new RealClock();
 
         @SubscribeEvent
         public void loadingConfig(ModConfigEvent.Loading event) {
             AutoRestartReloaded.getInstance().initialize(
                     actionProvider,
-                    NeoforgeConfigSpec.readConfig()
+                    NeoforgeConfigSpec.readConfig(),
+                    clock
             );
         }
     }

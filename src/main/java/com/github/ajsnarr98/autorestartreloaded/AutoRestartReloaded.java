@@ -19,8 +19,8 @@ public class AutoRestartReloaded {
     /**
      * Initialize with the given config. This can be called multiple times.
      */
-    public void initialize(QueudActionProvider actionProvider, Config config) {
-        this.restartProcessor = new RestartProcessorImpl(actionProvider, config);
+    public void initialize(QueudActionProvider actionProvider, Config config, Clock clock) {
+        this.restartProcessor = new RestartProcessorImpl(actionProvider, config, clock);
     }
 
     public void onServerTick(QueuedAction.RunContext context) {
