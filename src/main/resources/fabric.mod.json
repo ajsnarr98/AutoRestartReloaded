@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": [
+    "${author}"
+  ],
+  "contact": {
+    "homepage": "https://stonecutter.kikugie.dev/",
+    "sources": "https://codeberg.org/stonecutter/template-fabric"
+  },
+  "license": "${license}",
+  "icon": "assets/autorestartreloaded/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.ajsnarr98.autorestartreloaded.TemplateMod"
+    ]
+  },
+  "accessWidener": "autorestartreloaded.accesswidener",
+  "depends": {
+    "fabricloader": "${fabric}",
+    "minecraft": "${minecraft_version_range}"
+  }
+}
