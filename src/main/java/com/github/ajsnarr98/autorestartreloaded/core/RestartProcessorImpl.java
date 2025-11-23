@@ -33,7 +33,7 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
     @Override
     public void onServerTick(T context) {
         long now = Instant.now().getEpochSecond();
-        if (nextQueueTime >= now) {
+        if (nextQueueTime <= now) {
             mutex.lock();
             try {
                 popQueue().run(context);
@@ -75,8 +75,8 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
                 }
 
                 // we could not schedule at that time, start searching for the
-                // next time after that one
-                now = ZonedDateTime.ofInstant(Instant.ofEpochSecond(nextTime.get() + 1), timezone);
+                // next time after that one (at least 1 min after)
+                now = ZonedDateTime.ofInstant(Instant.ofEpochSecond(nextTime.get() + 60), timezone);
                 nextTime = config.nextPreScheduledRestartTime(now);
             }
         } finally {
@@ -108,6 +108,7 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
 
         if (trueRestartTime - highestLeadingSeconds < now) {
             // we are too close to this restart time to properly send messages
+            AutoRestartReloaded.LOGGER.debug("Too close to attempted restart time to properly send messages");
             return false;
         }
 
@@ -123,16 +124,17 @@ public class RestartProcessorImpl<T extends QueuedAction.RunContext> implements 
     }
 
     private void scheduleAction(QueuedAction<T> action) {
+        AutoRestartReloaded.LOGGER.debug("Scheduling action: " + action.toString());
         queue.add(action);
-        nextQueueTime = queue.last().getTime();
+        nextQueueTime = queue.first().getTime();
     }
 
     private QueuedAction<T> popQueue() {
-        QueuedAction<T> next = queue.removeLast();
+        QueuedAction<T> next = queue.removeFirst();
         if (queue.isEmpty()) {
             nextQueueTime = Long.MAX_VALUE;
         } else {
-            nextQueueTime = queue.last().getTime();
+            nextQueueTime = next.getTime();
         }
         return next;
     }

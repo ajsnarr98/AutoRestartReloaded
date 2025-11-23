@@ -1,12 +1,9 @@
 package com.github.ajsnarr98.autorestartreloaded.core;
 
-import com.cronutils.builder.CronBuilder;
 import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.model.field.expression.On;
-import com.cronutils.model.field.value.IntegerFieldValue;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
@@ -74,7 +71,7 @@ public class Config {
 
     // --------------- static properties/functions --------------------
     private static final CronDefinition CRON_DEFINITION = CronDefinitionBuilder.instanceDefinitionFor(
-            CronType.QUARTZ
+            CronType.UNIX
     );
     private static final CronParser CRON_PARSER = new CronParser(CRON_DEFINITION);
 
@@ -125,6 +122,7 @@ public class Config {
 
     private static Cron parseRestartTime(String argument) throws IllegalArgumentException {
         String trimmed = argument.trim();
+        String cronStr = trimmed;
 
         if (!trimmed.contains(" ")) {
             // this probably is not a cron definition, since there are no spaces
@@ -139,17 +137,15 @@ public class Config {
                 throw new IllegalArgumentException("Passed in numbers were outside the range of hour (0-23) or minute (0-59)");
             }
 
-            return CronBuilder.cron(CRON_DEFINITION)
-                    .withHour(new On(new IntegerFieldValue(hour)))
-                    .withMinute(new On(new IntegerFieldValue(minute)))
-                    .instance();
-        } else {
-            // assume this could by a cron definition
-            try {
-                return CRON_PARSER.parse(trimmed).validate();
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("failed to read cron definition", e);
-            }
+            cronStr = String.format("%d %d * * *", minute, hour);
+        }
+
+        // assume this could by a cron definition
+        try {
+            return CRON_PARSER.parse(cronStr)
+                    .validate();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("failed to read cron definition '%s'", cronStr), e);
         }
     }
 }

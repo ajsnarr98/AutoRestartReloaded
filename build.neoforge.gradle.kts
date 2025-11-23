@@ -34,19 +34,20 @@ neoForge {
     version = property("deps.neoforge") as String
     validateAccessTransformers = true
 
-    if (hasProperty("deps.parchment")) parchment {
-        val (mc, ver) = (property("deps.parchment") as String).split(':')
-        mappingsVersion = ver
-        minecraftVersion = mc
+    parchment {
+        mappingsVersion = property("deps.parchment-mappings") as String
+        minecraftVersion = property("deps.parchment-mc-version") as String
     }
 
     runs {
         register("client") {
             gameDirectory = file("run/")
+            logLevel = org.slf4j.event.Level.DEBUG
             client()
         }
         register("server") {
             gameDirectory = file("run/")
+            logLevel = org.slf4j.event.Level.DEBUG
             server()
         }
     }

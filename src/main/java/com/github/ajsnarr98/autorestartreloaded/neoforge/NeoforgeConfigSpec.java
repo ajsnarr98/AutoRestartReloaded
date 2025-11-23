@@ -28,13 +28,12 @@ public class NeoforgeConfigSpec {
                             **Advanced Format**
                             Advanced times are specified in the "cron" format (in the timezone the server is using),
                             where each line looks like this:
-                            
-                              * * * * *
-                            # | | | | |
-                            # | | | | day of the week (0–6) (Sunday to Saturday)
-                            # | | day of the month (1–31)
-                            # | hour (0–23)
-                            # minute (0–59)
+                             * * * * *
+                             | | | | |
+                             | | | | day of the week (0–6) (Sunday to Saturday)
+                             | | day of the month (1–31)
+                             | hour (0–23)
+                             minute (0–59)
                             
                             For example:
                               - A restart that happens every day at 1:00 AM:
@@ -45,6 +44,7 @@ public class NeoforgeConfigSpec {
                                 8 8 1 * *
                             
                             For more advanced examples, see https://en.wikipedia.org/wiki/Cron"""
+                            .replace("\n", "\n ")
             )
             .defineListAllowEmpty("restart_times", List.of("5:00"), () -> "", NeoforgeConfigSpec::validateRestartTime);
 

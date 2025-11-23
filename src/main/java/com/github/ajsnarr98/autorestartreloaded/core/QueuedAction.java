@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 public interface QueuedAction<T extends QueuedAction.RunContext> extends Comparable<QueuedAction<T>> {
 
     /**
-     * @return time that the action should run at in seconds since epoch
+     * @return time that the action should run at in _seconds_ since epoch
      */
     long getTime();
 
