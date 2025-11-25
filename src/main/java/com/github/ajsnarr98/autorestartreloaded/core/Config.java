@@ -16,28 +16,30 @@ import java.util.stream.Stream;
 
 public class Config {
     private final List<Cron> cronRestartSchedule;
-    private final List<RestartMessage> restartCommandMessages;
+    private final RestartMessages restartCommandMessages;
     private final ZoneId timezone;
 
     public Config(
-            List<? extends String> restartSchedule
+        List<? extends String> restartSchedule
     ) {
         this.cronRestartSchedule = restartSchedule.stream()
-                .map(Config::parseRestartTime)
-                .toList();
-        this.restartCommandMessages = Stream.of(
-            "5: Restarting in 5 seconds...",
-            "4: Restarting in 4 seconds...",
-            "3: Restarting in 3 seconds...",
-            "2: Restarting in 2 seconds...",
-            "1: Restarting in 1 second..."
-        )
+            .map(Config::parseRestartTime)
+            .toList();
+        this.restartCommandMessages = new RestartMessages(
+            Stream.of(
+                    "5: Restarting in 5 seconds...",
+                    "4: Restarting in 4 seconds...",
+                    "3: Restarting in 3 seconds...",
+                    "2: Restarting in 2 seconds...",
+                    "1: Restarting in 1 second..."
+                )
                 .map(Config::parseRestartMessage)
-                .toList();
+                .toList()
+        );
         this.timezone = ZoneId.systemDefault();
     }
 
-    public List<RestartMessage> getRestartCommandMessages() {
+    public RestartMessages getRestartCommandMessages() {
         return restartCommandMessages;
     }
 
@@ -46,7 +48,7 @@ public class Config {
     }
 
     /**
-     * @param now the time to start searching from
+     * @param now the time (ms) to start searching from
      */
     public Optional<Long> nextPreScheduledRestartTime(ZonedDateTime now) {
         long closest = Long.MAX_VALUE;
@@ -55,7 +57,7 @@ public class Config {
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
             Optional<ZonedDateTime> nextExec = executionTime.nextExecution(now);
             if (nextExec.isPresent()) {
-                long next = nextExec.get().toEpochSecond();
+                long next = nextExec.get().toEpochSecond() * 1000;
                 if (next < closest) {
                     closest = next;
                 }
@@ -71,7 +73,7 @@ public class Config {
 
     // --------------- static properties/functions --------------------
     private static final CronDefinition CRON_DEFINITION = CronDefinitionBuilder.instanceDefinitionFor(
-            CronType.UNIX
+        CronType.UNIX
     );
     private static final CronParser CRON_PARSER = new CronParser(CRON_DEFINITION);
 
@@ -97,12 +99,26 @@ public class Config {
         }
     }
 
+    public static class RestartMessages {
+        public final List<RestartMessage> messages;
+        public final long highestLeadingMs;
+
+        public RestartMessages(List<RestartMessage> messages) {
+            this.messages = messages;
+            long highestLeadingMs = 0;
+            for (Config.RestartMessage message : messages) {
+                highestLeadingMs = Math.max(highestLeadingMs, message.msBeforeRestart);
+            }
+            this.highestLeadingMs = highestLeadingMs;
+        }
+    }
+
     public static class RestartMessage {
-        public final long secondsBeforeRestart;
+        public final long msBeforeRestart;
         public final String message;
 
-        public RestartMessage(long secondsBeforeRestart, String message) {
-            this.secondsBeforeRestart = secondsBeforeRestart;
+        public RestartMessage(long msBeforeRestart, String message) {
+            this.msBeforeRestart = msBeforeRestart;
             this.message = message;
         }
     }
@@ -111,13 +127,13 @@ public class Config {
         int pos = raw.indexOf(':');
         if (pos <= 0 || pos >= (raw.length() - 1)) {
             throw new IllegalArgumentException("Message needs to start with a number of seconds before restart," +
-                    " followed by \":\", with the printed message after. But message was: \"" + raw + "\"");
+                " followed by \":\", with the printed message after. But message was: \"" + raw + "\"");
         }
 
         long leadingSeconds = Long.parseLong(raw.substring(0, pos));
         String message = raw.substring(pos + 1);
 
-        return new RestartMessage(leadingSeconds, message);
+        return new RestartMessage(leadingSeconds * 1000, message);
     }
 
     private static Cron parseRestartTime(String argument) throws IllegalArgumentException {
@@ -127,7 +143,8 @@ public class Config {
         if (!trimmed.contains(" ")) {
             // this probably is not a cron definition, since there are no spaces
             String[] split = trimmed.split(":");
-            if (split.length != 2) throw new IllegalArgumentException("Argument was not in the format HH:MM or was not a valid cron expression");
+            if (split.length != 2)
+                throw new IllegalArgumentException("Argument was not in the format HH:MM or was not a valid cron expression");
 
             int hour = Integer.parseInt(split[0]);
             int minute = Integer.parseInt(split[1]);
@@ -143,7 +160,7 @@ public class Config {
         // assume this could by a cron definition
         try {
             return CRON_PARSER.parse(cronStr)
-                    .validate();
+                .validate();
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(String.format("failed to read cron definition '%s'", cronStr), e);
         }
