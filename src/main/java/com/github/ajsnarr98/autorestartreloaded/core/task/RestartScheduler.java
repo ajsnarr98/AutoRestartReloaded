@@ -4,6 +4,7 @@ import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.TimeUtils;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
+import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -19,13 +20,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public class RestartScheduler implements Closeable {
-    private static final ThreadFactory daemonThreadFactory = runnable -> {
-        Thread thread = new Thread(runnable);
-        thread.setDaemon(true); // Mark the thread as a daemon
-        return thread;
-    };
-
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, daemonThreadFactory);
+    private final SchedulerFactory.Scheduler scheduler;
 
     private final List<ScheduledFuture<?>> tasks = new ArrayList<>();
     private final TreeSet<Long> taskTimesMs = new TreeSet<>();
@@ -33,10 +28,11 @@ public class RestartScheduler implements Closeable {
     private final ServerContext serverContext;
     private final Clock clock;
 
-    public RestartScheduler(QueuedTaskProvider taskProvider, ServerContext serverContext, Clock clock) {
+    public RestartScheduler(QueuedTaskProvider taskProvider, ServerContext serverContext, Clock clock, SchedulerFactory schedulerFactory) {
         this.taskProvider = taskProvider;
         this.clock = clock;
         this.serverContext = serverContext;
+        this.scheduler = schedulerFactory.newDaemonThreadScheduler();
     }
 
     public boolean hasRunningTasks() {
@@ -101,7 +97,7 @@ public class RestartScheduler implements Closeable {
     }
 
     private void scheduleSingle(Runnable command, long delayMs) {
-        tasks.add(scheduler.schedule(command, delayMs, TimeUnit.MILLISECONDS));
+        tasks.add(scheduler.schedule(command, delayMs));
         taskTimesMs.add(clock.millis() + delayMs);
         AutoRestartReloaded.LOGGER.debug(
             String.format(

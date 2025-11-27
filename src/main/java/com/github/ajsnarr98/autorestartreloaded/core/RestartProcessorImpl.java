@@ -4,6 +4,7 @@ import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.QueuedTaskProvider;
 import com.github.ajsnarr98.autorestartreloaded.core.task.RestartScheduler;
+import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -23,13 +24,15 @@ public class RestartProcessorImpl implements RestartProcessor {
         QueuedTaskProvider taskProvider,
         ServerContext serverContext,
         Config config,
-        Clock clock
+        Clock clock,
+        SchedulerFactory schedulerFactory
     ) {
         this.config = config;
         this.restartScheduler = new RestartScheduler(
             taskProvider,
             serverContext,
-            clock
+            clock,
+            schedulerFactory
         );
         this.clock = clock;
         setupQueueForScheduledTimes();

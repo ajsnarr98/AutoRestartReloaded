@@ -5,6 +5,7 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.DefaultTaskProvider;
+import com.github.ajsnarr98.autorestartreloaded.core.task.executer.DefaultSchedulerFactory;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.api.distmarker.Dist;
@@ -58,7 +59,8 @@ public class NeoforgeEntrypoint {
                 new DefaultTaskProvider(),
                 new RealServerContext(event.getServer()),
                 NeoforgeConfigSpec.readConfig(),
-                clock
+                clock,
+                new DefaultSchedulerFactory()
             );
         }
 

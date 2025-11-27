@@ -5,6 +5,7 @@ import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessor;
 import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessorImpl;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.QueuedTaskProvider;
+import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFactory;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
 
@@ -27,8 +28,14 @@ public class AutoRestartReloaded {
     /**
      * Initialize with the given config. This can be called multiple times.
      */
-    public void initialize(QueuedTaskProvider taskProvider, ServerContext serverContext, Config config, Clock clock) {
-        this.restartProcessor = new RestartProcessorImpl(taskProvider, serverContext, config, clock);
+    public void initialize(
+        QueuedTaskProvider taskProvider,
+        ServerContext serverContext,
+        Config config,
+        Clock clock,
+        SchedulerFactory schedulerFactory
+    ) {
+        this.restartProcessor = new RestartProcessorImpl(taskProvider, serverContext, config, clock, schedulerFactory);
     }
 
     public void onManualRestartCommand() {

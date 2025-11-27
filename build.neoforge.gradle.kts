@@ -63,9 +63,10 @@ neoForge {
 dependencies {
     implementation("com.cronutils:cron-utils:${property("deps.cronutils")}")
 
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    testImplementation(platform("org.junit:junit-bom:${property("deps.junit-bom")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:${property("deps.mockito")}")
 }
 
 tasks.test {
