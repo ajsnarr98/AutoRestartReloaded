@@ -8,8 +8,8 @@ import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFact
 
 import java.io.IOException;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -52,7 +52,7 @@ public class RestartProcessorImpl implements RestartProcessor {
             AutoRestartReloaded.LOGGER.info("Scheduling for restart command");
             restartScheduler.cancelAll();
 
-            restartScheduler.scheduleRestartWithMessages(-1, config.getRestartCommandMessages());
+            restartScheduler.scheduleRestartWithMessages(null, config.getRestartCommandMessages());
             currentRestartType = RestartType.MANUAL;
         } finally {
             mutex.unlock();
@@ -65,8 +65,8 @@ public class RestartProcessorImpl implements RestartProcessor {
             AutoRestartReloaded.LOGGER.info("Attempting to schedule next restart");
             restartScheduler.cancelAll();
 
-            ZonedDateTime now = ZonedDateTime.ofInstant(clock.instant(), clock.getZone());
-            Optional<Long> nextTime = config.nextPreScheduledRestartTime(now);
+            Instant now = clock.instant();
+            Optional<Instant> nextTime = config.nextPreScheduledRestartTime(now);
             while (nextTime.isPresent()) {
                 // TODO use different messages
                 if (restartScheduler.scheduleRestartWithMessages(nextTime.get(), config.getRestartCommandMessages())) {
@@ -77,7 +77,7 @@ public class RestartProcessorImpl implements RestartProcessor {
 
                 // we could not schedule at that time, start searching for the
                 // next time after that one (at least 1 min after)
-                now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(nextTime.get() + 60000), clock.getZone());
+                now = nextTime.get().plus(Duration.ofMinutes(1));
                 nextTime = config.nextPreScheduledRestartTime(now);
             }
         } finally {
@@ -90,7 +90,7 @@ public class RestartProcessorImpl implements RestartProcessor {
         restartScheduler.close();
     }
 
-    private static enum RestartType {
+    private enum RestartType {
         NONE, MANUAL, SCHEDULED
     }
 }

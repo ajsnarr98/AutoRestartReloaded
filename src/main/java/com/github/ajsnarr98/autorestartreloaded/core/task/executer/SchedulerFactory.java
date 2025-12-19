@@ -19,7 +19,7 @@ public interface SchedulerFactory {
 
     interface Scheduler {
         /**
-         * Creates and executes a ScheduledFuture that becomes enabled after the given delay.
+         * Creates and executes a ScheduledFuture that runs after the given delay.
          *
          * @return a ScheduledFuture that can be used to extract result or cancel
          */

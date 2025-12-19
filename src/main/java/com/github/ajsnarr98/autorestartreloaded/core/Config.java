@@ -8,7 +8,11 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 
+import javax.annotation.Nullable;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -50,25 +54,27 @@ public class Config {
     /**
      * @param now the time (ms) to start searching from
      */
-    public Optional<Long> nextPreScheduledRestartTime(ZonedDateTime now) {
-        long closest = Long.MAX_VALUE;
+    public Optional<Instant> nextPreScheduledRestartTime(Instant now) {
+        @Nullable Instant closest = null;
+
+        // use UTC for zone since the cron library assumes our times were specified in UTC,
+        // when really they are in the config-specified timezone
+        ZonedDateTime zonedNow = ZonedDateTime.ofInstant(now, ZoneOffset.UTC);
 
         for (Cron cron : cronRestartSchedule) {
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
-            Optional<ZonedDateTime> nextExec = executionTime.nextExecution(now);
+            Optional<ZonedDateTime> nextExec = executionTime.nextExecution(zonedNow);
             if (nextExec.isPresent()) {
-                long next = nextExec.get().toEpochSecond() * 1000;
-                if (next < closest) {
+                Instant next = nextExec.get().toInstant();
+                if (closest == null) {
+                    closest = next;
+                } else if (next.isBefore(closest)) {
                     closest = next;
                 }
             }
         }
 
-        if (closest != Long.MAX_VALUE) {
-            return Optional.of(closest);
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(closest);
     }
 
     // --------------- static properties/functions --------------------
@@ -101,7 +107,8 @@ public class Config {
 
     public static class RestartMessages {
         public final List<RestartMessage> messages;
-        public final long highestLeadingMs;
+        /** Difference in time between the first message sent, and the actual restart. */
+        public final Duration highestLeadingTime;
 
         public RestartMessages(List<RestartMessage> messages) {
             this.messages = messages;
@@ -109,7 +116,7 @@ public class Config {
             for (Config.RestartMessage message : messages) {
                 highestLeadingMs = Math.max(highestLeadingMs, message.msBeforeRestart);
             }
-            this.highestLeadingMs = highestLeadingMs;
+            this.highestLeadingTime = Duration.ofMillis(highestLeadingMs);
         }
     }
 

@@ -1,6 +1,5 @@
 package com.github.ajsnarr98.autorestartreloaded.core;
 
-import java.sql.Time;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -12,7 +11,7 @@ public class TestClock extends Clock {
 
     private Clock clock;
 
-    private List<TimeChangedListener> listeners;
+    private final List<TimeChangedListener> listeners;
 
     public TestClock(Instant startingInstant, ZoneId zone) {
         this(Clock.fixed(startingInstant, zone), new ArrayList<>());
