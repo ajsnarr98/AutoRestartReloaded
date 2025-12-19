@@ -204,4 +204,25 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
             }
         );
     }
+
+    @Test
+    void givenTwoSimpleScheduledRestartTimesReversedWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T11:10:55.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("11:30", "11:11"),
+            new long[]{
+                1_140_000L,
+                1_141_000L,
+                1_142_000L,
+                1_143_000L,
+                1_144_000L,
+                1_145_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofMinutes(18));
+                advanceTimeBy(Duration.ofSeconds(59));
+            }
+        );
+    }
 }
