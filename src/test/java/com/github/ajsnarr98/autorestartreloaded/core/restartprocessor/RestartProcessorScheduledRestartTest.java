@@ -225,4 +225,152 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
             }
         );
     }
+
+    @Test
+    void givenOneCronScheduledRestartTimeOnSameDayUTCRestartIsScheduledForSameDay() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T10:15:00.00Z"),
+            ZoneOffset.UTC,
+            List.of("0 13 * * *"),
+            new long[]{
+                9_895_000L,
+                9_896_000L,
+                9_897_000L,
+                9_898_000L,
+                9_899_000L,
+                9_900_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofHours(2));
+                advanceTimeBy(Duration.ofMinutes(44));
+                advanceTimeBy(Duration.ofSeconds(54));
+            }
+        );
+    }
+
+    @Test
+    void givenOneCronScheduledRestartTimeOnSameDayESTRestartIsScheduledForSameDay() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T10:15:00.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("0 13 * * *"),
+            new long[]{
+                9_895_000L,
+                9_896_000L,
+                9_897_000L,
+                9_898_000L,
+                9_899_000L,
+                9_900_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofHours(2));
+                advanceTimeBy(Duration.ofMinutes(44));
+                advanceTimeBy(Duration.ofSeconds(54));
+            }
+        );
+    }
+
+    @Test
+    void givenOneCronScheduledRestartTimeOnNextDayESTRestartIsScheduledForNextDay() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T04:10:00.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("0 4 * * *"),
+            new long[]{
+                85_795_000L,
+                85_796_000L,
+                85_797_000L,
+                85_798_000L,
+                85_799_000L,
+                85_800_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofHours(23));
+                advanceTimeBy(Duration.ofMinutes(49));
+                advanceTimeBy(Duration.ofSeconds(54));
+            }
+        );
+    }
+
+    @Test
+    void givenOneCronScheduledRestartTimeInMinimumSecondsRestartIsScheduledInMinimumSeconds() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T11:10:54.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("11 11 * * *"),
+            new long[]{
+                1_000L,
+                2_000L,
+                3_000L,
+                4_000L,
+                5_000L,
+                6_000L
+            },
+            () -> {}
+        );
+    }
+
+    @Test
+    void givenOneCronScheduledRestartTimeThatIsTooSoonRestartIsScheduledNextDay() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T11:10:55.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("11 11 * * *"),
+            new long[]{
+                86_400_000L,
+                86_401_000L,
+                86_402_000L,
+                86_403_000L,
+                86_404_000L,
+                86_405_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofHours(23));
+                advanceTimeBy(Duration.ofMinutes(59));
+                advanceTimeBy(Duration.ofSeconds(59));
+            }
+        );
+    }
+
+    @Test
+    void givenTwoCronScheduledRestartTimesWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T11:10:55.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("11 11 * * *", "30 11 * * *"),
+            new long[]{
+                1_140_000L,
+                1_141_000L,
+                1_142_000L,
+                1_143_000L,
+                1_144_000L,
+                1_145_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofMinutes(18));
+                advanceTimeBy(Duration.ofSeconds(59));
+            }
+        );
+    }
+
+    @Test
+    void givenTwoCronScheduledRestartTimesReversedWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
+        testScheduledRestartTime(
+            Instant.parse("2025-12-03T11:10:55.00Z"),
+            ZoneOffset.ofHours(-5), // EST
+            List.of("30 11 * * *", "11 11 * * *"),
+            new long[]{
+                1_140_000L,
+                1_141_000L,
+                1_142_000L,
+                1_143_000L,
+                1_144_000L,
+                1_145_000L
+            },
+            () -> {
+                advanceTimeBy(Duration.ofMinutes(18));
+                advanceTimeBy(Duration.ofSeconds(59));
+            }
+        );
+    }
 }
