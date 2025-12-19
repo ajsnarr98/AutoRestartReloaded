@@ -82,6 +82,8 @@ public class RestartScheduler implements Closeable {
 
         long trueRestartDelay = trueRestartTime - now;
 
+        cancelAll();
+
         for (Config.RestartMessage message : messages.messages) {
             scheduleSingle(
                 taskProvider.newRestartMessageTask(serverContext, message.message),

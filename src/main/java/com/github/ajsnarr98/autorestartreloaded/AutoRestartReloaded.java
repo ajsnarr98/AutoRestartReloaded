@@ -1,6 +1,7 @@
 package com.github.ajsnarr98.autorestartreloaded;
 
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
+import com.github.ajsnarr98.autorestartreloaded.core.EmptyLogger;
 import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessor;
 import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessorImpl;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
@@ -15,7 +16,16 @@ import java.time.Clock;
 public class AutoRestartReloaded {
     public static final String MODID = /*$ modid*/ "autorestartreloaded";
     public static final String MINECRAFT_VERSION = /*$ minecraft*/ "1.21.10";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static Logger LOGGER;
+
+    static {
+        try {
+            LOGGER = LogUtils.getLogger();
+        } catch (NoClassDefFoundError e) {
+            // just don't log (we are probably in a test)
+            LOGGER = new EmptyLogger();
+        }
+    }
 
     private static AutoRestartReloaded INSTANCE = new AutoRestartReloaded();
 

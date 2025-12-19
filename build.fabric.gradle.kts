@@ -50,6 +50,12 @@ dependencies {
     fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0")
 
     implementation("com.cronutils:cron-utils:${property("deps.cronutils")}")
+
+    testImplementation(platform("org.junit:junit-bom:${property("deps.junit-bom")}"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:${property("deps.mockito")}")
+    testImplementation("org.assertj:assertj-core:${property("deps.assertj")}")
 }
 
 loom {
