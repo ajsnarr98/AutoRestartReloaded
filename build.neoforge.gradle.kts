@@ -67,6 +67,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:${property("deps.mockito")}")
+    testImplementation("org.assertj:assertj-core:${property("deps.assertj")}")
 }
 
 tasks.test {
