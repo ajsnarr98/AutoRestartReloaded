@@ -24,7 +24,8 @@ public class Config {
     private final ZoneId timezone;
 
     public Config(
-        List<? extends String> restartSchedule
+        List<? extends String> restartSchedule,
+        ZoneId timezone
     ) {
         this.cronRestartSchedule = restartSchedule.stream()
             .map(Config::parseRestartTime)
@@ -40,7 +41,7 @@ public class Config {
                 .map(Config::parseRestartMessage)
                 .toList()
         );
-        this.timezone = ZoneId.systemDefault();
+        this.timezone = timezone;
     }
 
     public RestartMessages getRestartCommandMessages() {
@@ -59,7 +60,7 @@ public class Config {
 
         // use UTC for zone since the cron library assumes our times were specified in UTC,
         // when really they are in the config-specified timezone
-        ZonedDateTime zonedNow = ZonedDateTime.ofInstant(now, ZoneOffset.UTC);
+        ZonedDateTime zonedNow = ZonedDateTime.ofInstant(now, getTimezone());
 
         for (Cron cron : cronRestartSchedule) {
             ExecutionTime executionTime = ExecutionTime.forCron(cron);

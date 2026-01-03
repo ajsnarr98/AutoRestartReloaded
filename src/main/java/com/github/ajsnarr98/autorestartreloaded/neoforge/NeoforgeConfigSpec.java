@@ -5,6 +5,7 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.time.ZoneId;
 import java.util.List;
 
 public class NeoforgeConfigSpec {
@@ -52,7 +53,8 @@ public class NeoforgeConfigSpec {
 
     static Config readConfig() {
         return new Config(
-            RAW_AUTO_RESTART_TIMES.get()
+            RAW_AUTO_RESTART_TIMES.get(),
+            ZoneId.systemDefault()
         );
     }
 

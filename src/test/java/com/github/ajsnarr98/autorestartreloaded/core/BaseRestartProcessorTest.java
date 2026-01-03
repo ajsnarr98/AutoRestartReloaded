@@ -26,7 +26,8 @@ public class BaseRestartProcessorTest {
     public void setup() {
         this.taskProvider = new DefaultTaskProvider();
         this.config = new Config(
-            List.of("13:00")
+            List.of("13:00"),
+            ZoneOffset.UTC
         );
         this.clock = new TestClock(
             Instant.parse("2025-12-03T10:15:30.00Z"),
@@ -50,8 +51,11 @@ public class BaseRestartProcessorTest {
         this.clock.advanceTimeBy(duration);
     }
 
-    protected void setTime(Instant instant, ZoneId timeZone) {
-        this.clock = new TestClock(instant, timeZone);
+    /**
+     * Call after setting config with timezone.
+     */
+    protected void setTime(Instant instant) {
+        this.clock = new TestClock(instant, config.getTimezone());
         this.schedulerFactory.setClock(this.clock);
     }
 }

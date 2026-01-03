@@ -27,8 +27,8 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
         long[] expectedScheduledDelays,
         Runnable advanceTimeUntil1SecondBeforeFirstMessage
     ) {
-        setTime(instant, zone);
-        this.config = new Config(restartSchedule);
+        this.config = new Config(restartSchedule, zone);
+        setTime(instant);
         RestartProcessor restartProcessor = getRestartProcessor();
 
         verify(schedulerFactory.schedulers.getFirst(), times(expectedScheduledDelays.length))
@@ -103,7 +103,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneSimpleScheduledRestartTimeOnSameDayESTRestartIsScheduledForSameDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T10:15:00.00Z"),
+            Instant.parse("2025-12-03T10:15:00.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("13:00"),
             new long[]{
@@ -125,7 +125,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneSimpleScheduledRestartTimeOnNextDayESTRestartIsScheduledForNextDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T04:10:00.00Z"),
+            Instant.parse("2025-12-03T04:10:00.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("4:00"),
             new long[]{
@@ -147,7 +147,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneSimpleScheduledRestartTimeInMinimumSecondsRestartIsScheduledInMinimumSeconds() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:54.00Z"),
+            Instant.parse("2025-12-03T11:10:54.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11:11"),
             new long[]{
@@ -158,14 +158,15 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
                 5_000L,
                 6_000L
             },
-            () -> {}
+            () -> {
+            }
         );
     }
 
     @Test
     void givenOneSimpleScheduledRestartTimeThatIsTooSoonRestartIsScheduledNextDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11:11"),
             new long[]{
@@ -187,7 +188,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenTwoSimpleScheduledRestartTimesWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11:11", "11:30"),
             new long[]{
@@ -208,7 +209,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenTwoSimpleScheduledRestartTimesReversedWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11:30", "11:11"),
             new long[]{
@@ -251,7 +252,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneCronScheduledRestartTimeOnSameDayESTRestartIsScheduledForSameDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T10:15:00.00Z"),
+            Instant.parse("2025-12-03T10:15:00.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("0 13 * * *"),
             new long[]{
@@ -273,7 +274,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneCronScheduledRestartTimeOnNextDayESTRestartIsScheduledForNextDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T04:10:00.00Z"),
+            Instant.parse("2025-12-03T04:10:00.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("0 4 * * *"),
             new long[]{
@@ -295,7 +296,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenOneCronScheduledRestartTimeInMinimumSecondsRestartIsScheduledInMinimumSeconds() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:54.00Z"),
+            Instant.parse("2025-12-03T11:10:54.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11 11 * * *"),
             new long[]{
@@ -306,14 +307,15 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
                 5_000L,
                 6_000L
             },
-            () -> {}
+            () -> {
+            }
         );
     }
 
     @Test
     void givenOneCronScheduledRestartTimeThatIsTooSoonRestartIsScheduledNextDay() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11 11 * * *"),
             new long[]{
@@ -335,7 +337,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenTwoCronScheduledRestartTimesWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("11 11 * * *", "30 11 * * *"),
             new long[]{
@@ -356,7 +358,7 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
     @Test
     void givenTwoCronScheduledRestartTimesReversedWhereOneIsTooSoonRestartIsScheduledForSecondTime() {
         testScheduledRestartTime(
-            Instant.parse("2025-12-03T11:10:55.00Z"),
+            Instant.parse("2025-12-03T11:10:55.00-05:00"),
             ZoneOffset.ofHours(-5), // EST
             List.of("30 11 * * *", "11 11 * * *"),
             new long[]{
@@ -370,6 +372,71 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
             () -> {
                 advanceTimeBy(Duration.ofMinutes(18));
                 advanceTimeBy(Duration.ofSeconds(59));
+            }
+        );
+    }
+
+    @Test
+    void scheduledRestartWorksWithForwardTimeChange() {
+        // expect 10 hrs 10 min because we skip an hr
+        testScheduledRestartTime(
+            Instant.parse("2025-03-09T01:50:00.00-05:00"),
+            ZoneId.of("America/New_York"),
+            List.of("13:00"),
+            new long[]{
+                36_595_000L,
+                36_596_000L,
+                36_597_000L,
+                36_598_000L,
+                36_599_000L,
+                36_600_000L // 10 hrs 10 min
+            },
+            () -> {
+                advanceTimeBy(Duration.ofHours(10));
+                advanceTimeBy(Duration.ofMinutes(9));
+                advanceTimeBy(Duration.ofSeconds(54));
+            }
+        );
+    }
+
+    @Test
+    void scheduledRestartWorksWithBackwardTimeChangeBeforeTime() {
+        testScheduledRestartTime(
+            Instant.parse("2025-11-02T01:20:00.00-04:00"),
+            ZoneId.of("America/New_York"),
+            List.of("1:30"),
+            new long[]{
+                595_000L,
+                596_000L,
+                597_000L,
+                598_000L,
+                599_000L,
+                600_000L // 10 min
+            },
+            () -> {
+                advanceTimeBy(Duration.ofMinutes(9));
+                advanceTimeBy(Duration.ofSeconds(54));
+            }
+        );
+    }
+
+    @Test
+    void scheduledRestartWorksWithBackwardTimeChangeAfterTime() {
+        testScheduledRestartTime(
+            Instant.parse("2025-11-02T01:35:00.00-04:00"),
+            ZoneId.of("America/New_York"),
+            List.of("1:30"),
+            new long[]{
+                3_295_000L,
+                3_296_000L,
+                3_297_000L,
+                3_298_000L,
+                3_299_000L,
+                3_300_000L // 55 min
+            },
+            () -> {
+                advanceTimeBy(Duration.ofMinutes(54));
+                advanceTimeBy(Duration.ofSeconds(54));
             }
         );
     }
