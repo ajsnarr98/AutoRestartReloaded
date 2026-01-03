@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +24,7 @@ public class Config {
 
     public Config(
         List<? extends String> restartSchedule,
-        ZoneId timezone
+        String rawTimezone
     ) {
         this.cronRestartSchedule = restartSchedule.stream()
             .map(Config::parseRestartTime)
@@ -41,7 +40,7 @@ public class Config {
                 .map(Config::parseRestartMessage)
                 .toList()
         );
-        this.timezone = timezone;
+        this.timezone = ZoneId.of(rawTimezone);
     }
 
     public RestartMessages getRestartCommandMessages() {

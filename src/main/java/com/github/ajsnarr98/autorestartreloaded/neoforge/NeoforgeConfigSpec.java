@@ -5,7 +5,6 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.time.ZoneId;
 import java.util.List;
 
 public class NeoforgeConfigSpec {
@@ -49,12 +48,26 @@ public class NeoforgeConfigSpec {
         )
         .defineListAllowEmpty("restart_times", List.of("5:00"), () -> "", NeoforgeConfigSpec::validateRestartTime);
 
+    private static final ModConfigSpec.ConfigValue<String> RAW_TIMEZONE = BUILDER
+        .comment(
+            """
+                The timezone that restart_times are specified in. By default,
+                we use UTC (Coordinated Universal Time). You can specify this
+                time in one of two ways:
+                  1. an offset from UTC, for example "UTC-5" or "UTC+1"
+                  2. a timezone from the tz database, for example "America/New_York"
+                 \s
+                You can see tz database entries here https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+           \s"""
+        )
+        .define("timezone", "UTC+0");
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     static Config readConfig() {
         return new Config(
             RAW_AUTO_RESTART_TIMES.get(),
-            ZoneId.systemDefault()
+            RAW_TIMEZONE.get()
         );
     }
 

@@ -3,6 +3,7 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 //? neoforge {
 
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.DefaultTaskProvider;
 import com.github.ajsnarr98.autorestartreloaded.core.task.executer.DefaultSchedulerFactory;
@@ -41,7 +42,6 @@ public class NeoforgeEntrypoint {
 //    }
 
     public static class MainEventHandler {
-        private final Clock clock = Clock.systemDefaultZone(); // TODO use config
 
         @SubscribeEvent
         public void onRegisterCommands(RegisterCommandsEvent event) {
@@ -55,11 +55,12 @@ public class NeoforgeEntrypoint {
 
         @SubscribeEvent
         public void onServerStarted(ServerStartedEvent event) {
+            Config config = NeoforgeConfigSpec.readConfig();
             AutoRestartReloaded.getInstance().initialize(
                 new DefaultTaskProvider(),
                 new RealServerContext(event.getServer()),
-                NeoforgeConfigSpec.readConfig(),
-                clock,
+                config,
+                Clock.system(config.getTimezone()),
                 new DefaultSchedulerFactory()
             );
         }

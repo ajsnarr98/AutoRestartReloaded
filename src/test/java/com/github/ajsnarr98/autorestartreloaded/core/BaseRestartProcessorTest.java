@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class BaseRestartProcessorTest {
         this.taskProvider = new DefaultTaskProvider();
         this.config = new Config(
             List.of("13:00"),
-            ZoneOffset.UTC
+            "UTC"
         );
         this.clock = new TestClock(
             Instant.parse("2025-12-03T10:15:30.00Z"),
