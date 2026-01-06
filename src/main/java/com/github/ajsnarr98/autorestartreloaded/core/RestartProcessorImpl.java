@@ -68,8 +68,7 @@ public class RestartProcessorImpl implements RestartProcessor {
             Instant now = clock.instant();
             Optional<Instant> nextTime = config.nextPreScheduledRestartTime(now);
             while (nextTime.isPresent()) {
-                // TODO use different messages
-                if (restartScheduler.scheduleRestartWithMessages(nextTime.get(), config.getRestartCommandMessages())) {
+                if (restartScheduler.scheduleRestartWithMessages(nextTime.get(), config.getScheduledRestartMessages())) {
                     // stop looping on successful scheduling
                     currentRestartType = RestartType.SCHEDULED;
                     break;

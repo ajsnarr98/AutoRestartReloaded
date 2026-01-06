@@ -27,7 +27,7 @@ public class AutoRestartReloaded {
         }
     }
 
-    private static AutoRestartReloaded INSTANCE = new AutoRestartReloaded();
+    private static final AutoRestartReloaded INSTANCE = new AutoRestartReloaded();
 
     public static AutoRestartReloaded getInstance() {
         return INSTANCE;

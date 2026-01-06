@@ -7,6 +7,8 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.core.error.InvalidRestartMessageException;
+import com.github.ajsnarr98.autorestartreloaded.core.error.InvalidRestartTimeException;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -15,36 +17,52 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Config {
     private final List<Cron> cronRestartSchedule;
+    private final RestartMessages scheduledRestartMessages;
     private final RestartMessages restartCommandMessages;
+    private final RestartMessages dynamicRestartMessages;
     private final ZoneId timezone;
 
     public Config(
         List<? extends String> restartSchedule,
-        String rawTimezone
+        String rawTimezone,
+        List<? extends String> scheduledRestartMessages,
+        List<? extends String> restartCommandMessages,
+        List<? extends String> dynamicRestartMessages
     ) {
+        this.timezone = ZoneId.of(rawTimezone);
         this.cronRestartSchedule = restartSchedule.stream()
             .map(Config::parseRestartTime)
             .toList();
         this.restartCommandMessages = new RestartMessages(
-            Stream.of(
-                    "5: Restarting in 5 seconds...",
-                    "4: Restarting in 4 seconds...",
-                    "3: Restarting in 3 seconds...",
-                    "2: Restarting in 2 seconds...",
-                    "1: Restarting in 1 second..."
-                )
+            restartCommandMessages.stream()
                 .map(Config::parseRestartMessage)
                 .toList()
         );
-        this.timezone = ZoneId.of(rawTimezone);
+        this.scheduledRestartMessages = new RestartMessages(
+            scheduledRestartMessages.stream()
+                .map(Config::parseRestartMessage)
+                .toList()
+        );
+        this.dynamicRestartMessages = new RestartMessages(
+            dynamicRestartMessages.stream()
+                .map(Config::parseRestartMessage)
+                .toList()
+        );
     }
 
     public RestartMessages getRestartCommandMessages() {
         return restartCommandMessages;
+    }
+
+    public RestartMessages getScheduledRestartMessages() {
+        return scheduledRestartMessages;
+    }
+
+    public RestartMessages getDynamicRestartMessages() {
+        return scheduledRestartMessages;
     }
 
     public ZoneId getTimezone() {
@@ -57,8 +75,6 @@ public class Config {
     public Optional<Instant> nextPreScheduledRestartTime(Instant now) {
         @Nullable Instant closest = null;
 
-        // use UTC for zone since the cron library assumes our times were specified in UTC,
-        // when really they are in the config-specified timezone
         ZonedDateTime zonedNow = ZonedDateTime.ofInstant(now, getTimezone());
 
         for (Cron cron : cronRestartSchedule) {
@@ -87,7 +103,7 @@ public class Config {
         try {
             parseRestartTime(argument);
             return true;
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidRestartTimeException e) {
             String msg = String.format("Failed to parse restart time: '%s'", argument);
             AutoRestartReloaded.LOGGER.error(msg, e);
             return false;
@@ -98,10 +114,11 @@ public class Config {
         try {
             parseRestartMessage(argument);
             return true;
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidRestartMessageException e) {
             String msg = String.format("Failed to parse restart message: '%s'", argument);
             AutoRestartReloaded.LOGGER.error(msg, e);
-            return false;
+            throw e;
+//            return false;
         }
     }
 
@@ -130,35 +147,38 @@ public class Config {
         }
     }
 
-    private static RestartMessage parseRestartMessage(String raw) throws IllegalArgumentException {
+    private static RestartMessage parseRestartMessage(String raw) throws InvalidRestartMessageException {
         int pos = raw.indexOf(':');
         if (pos <= 0 || pos >= (raw.length() - 1)) {
-            throw new IllegalArgumentException("Message needs to start with a number of seconds before restart," +
+            throw new InvalidRestartMessageException("Message needs to start with a number of seconds before restart," +
                 " followed by \":\", with the printed message after. But message was: \"" + raw + "\"");
         }
 
-        long leadingSeconds = Long.parseLong(raw.substring(0, pos));
-        String message = raw.substring(pos + 1);
+        long leadingSeconds = Long.parseLong(raw.substring(0, pos).trim());
+        String message = raw.substring(pos + 1).trim();
 
         return new RestartMessage(leadingSeconds * 1000, message);
     }
 
-    private static Cron parseRestartTime(String argument) throws IllegalArgumentException {
+    private static Cron parseRestartTime(String argument) throws InvalidRestartTimeException {
         String trimmed = argument.trim();
         String cronStr = trimmed;
 
         if (!trimmed.contains(" ")) {
             // this probably is not a cron definition, since there are no spaces
             String[] split = trimmed.split(":");
-            if (split.length != 2)
-                throw new IllegalArgumentException("Argument was not in the format HH:MM or was not a valid cron expression");
+            if (split.length != 2) {
+                throw new InvalidRestartTimeException("Restart time \""
+                    + trimmed + "\" was not in the format HH:MM or was not a valid cron expression");
+            }
 
             int hour = Integer.parseInt(split[0]);
             int minute = Integer.parseInt(split[1]);
 
             // check that the numbers are in the right range
             if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-                throw new IllegalArgumentException("Passed in numbers were outside the range of hour (0-23) or minute (0-59)");
+                throw new InvalidRestartTimeException("Passed in numbers for the the restart time \""
+                    + trimmed + "\" were outside the range of hour (0-23) or minute (0-59)");
             }
 
             cronStr = String.format("%d %d * * *", minute, hour);
@@ -169,7 +189,7 @@ public class Config {
             return CRON_PARSER.parse(cronStr)
                 .validate();
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("failed to read cron definition '%s'", cronStr), e);
+            throw new InvalidRestartTimeException(String.format("Failed to read cron definition \"%s\"", cronStr), e);
         }
     }
 }
