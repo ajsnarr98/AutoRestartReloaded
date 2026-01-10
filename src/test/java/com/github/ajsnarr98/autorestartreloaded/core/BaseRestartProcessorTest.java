@@ -57,16 +57,21 @@ public class BaseRestartProcessorTest {
         "1: Restarting in 1 second..."
     );
 
+    public class TestConfigBuilder extends Config.Builder {
+        @Override
+        protected void setupDefaults() {
+            this.restartSchedule = List.of("13:00");
+            this.rawTimezone = "UTC";
+            this.scheduledRestartMessages = sampleScheduleRestartMessages;
+            this.restartCommandMessages = sampleCommandRestartMessages;
+            this.dynamicRestartMessages = sampleDynamicRestartMessages;
+        }
+    }
+
     @BeforeEach
     public void setup() {
         this.taskProvider = new DefaultTaskProvider();
-        this.config = new Config(
-            List.of("13:00"),
-            "UTC",
-            sampleScheduleRestartMessages,
-            sampleCommandRestartMessages,
-            sampleDynamicRestartMessages
-        );
+        this.config = new TestConfigBuilder().build();
         this.clock = new TestClock(
             Instant.parse("2025-12-03T10:15:30.00Z"),
             ZoneOffset.ofHours(-5) // EST

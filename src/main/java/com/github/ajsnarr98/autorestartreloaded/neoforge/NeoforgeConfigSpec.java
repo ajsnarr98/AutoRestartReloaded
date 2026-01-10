@@ -185,13 +185,13 @@ public class NeoforgeConfigSpec {
     static final ModConfigSpec SPEC = BUILDER.build();
 
     static Config readConfig() {
-        return new Config(
-            RAW_AUTO_RESTART_TIMES.get(),
-            RAW_TIMEZONE.get(),
-            SCHEDULED_RESTART_MESSAGES.get(),
-            COMMAND_RESTART_MESSAGES.get(),
-            DYNAMIC_RESTART_MESSAGES.get()
-        );
+        return new Config.Builder()
+            .restartSchedule(RAW_AUTO_RESTART_TIMES.get())
+            .rawTimezone(RAW_TIMEZONE.get())
+            .scheduledRestartMessages(SCHEDULED_RESTART_MESSAGES.get())
+            .restartCommandMessages(COMMAND_RESTART_MESSAGES.get())
+            .dynamicRestartMessages(DYNAMIC_RESTART_MESSAGES.get())
+            .build();
     }
 
     // ---------- validation functions ---------------

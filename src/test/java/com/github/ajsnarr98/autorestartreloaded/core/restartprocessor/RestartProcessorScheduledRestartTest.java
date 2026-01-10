@@ -1,7 +1,6 @@
 package com.github.ajsnarr98.autorestartreloaded.core.restartprocessor;
 
 import com.github.ajsnarr98.autorestartreloaded.core.BaseRestartProcessorTest;
-import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessor;
 import org.junit.jupiter.api.Test;
 
@@ -25,20 +24,20 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
         long[] expectedScheduledDelays,
         Runnable advanceTimeUntil1SecondBeforeFirstMessage
     ) {
-        this.config = new Config(
-            restartSchedule,
-            zone,
-            List.of(
-                "10: Server restarting in 10 seconds for scheduled time...",
-                "5: Restarting in 5 seconds...",
-                "4: Restarting in 4 seconds...",
-                "3: Restarting in 3 seconds...",
-                "2: Restarting in 2 seconds...",
-                "1: Restarting in 1 second..."
-            ),
-            sampleCommandRestartMessages,
-            sampleDynamicRestartMessages
-        );
+        this.config = new TestConfigBuilder()
+            .restartSchedule(restartSchedule)
+            .rawTimezone(zone)
+            .scheduledRestartMessages(
+                List.of(
+                    "10: Server restarting in 10 seconds for scheduled time...",
+                    "5: Restarting in 5 seconds...",
+                    "4: Restarting in 4 seconds...",
+                    "3: Restarting in 3 seconds...",
+                    "2: Restarting in 2 seconds...",
+                    "1: Restarting in 1 second..."
+                )
+            )
+            .build();
         setTime(instant);
         RestartProcessor restartProcessor = getRestartProcessor();
 

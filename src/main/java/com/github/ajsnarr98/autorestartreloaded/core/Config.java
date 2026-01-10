@@ -25,29 +25,112 @@ public class Config {
     private final RestartMessages dynamicRestartMessages;
     private final ZoneId timezone;
 
+    public static class Builder {
+
+        protected List<? extends String> restartSchedule;
+        protected String rawTimezone;
+        protected List<? extends String> scheduledRestartMessages;
+        protected List<? extends String> restartCommandMessages;
+        protected List<? extends String> dynamicRestartMessages;
+
+        public Builder() {
+            setupDefaults();
+        }
+
+        protected void setupDefaults() {
+            // override this in testing
+        }
+
+        public List<? extends String> getRestartSchedule() {
+            return restartSchedule;
+        }
+
+        public Builder restartSchedule(List<? extends String> restartSchedule) {
+            this.restartSchedule = restartSchedule;
+            return this;
+        }
+
+        public String getRawTimezone() {
+            return rawTimezone;
+        }
+
+        public Builder rawTimezone(String rawTimezone) {
+            this.rawTimezone = rawTimezone;
+            return this;
+        }
+
+        public List<? extends String> getScheduledRestartMessages() {
+            return scheduledRestartMessages;
+        }
+
+        public Builder scheduledRestartMessages(List<? extends String> scheduledRestartMessages) {
+            this.scheduledRestartMessages = scheduledRestartMessages;
+            return this;
+        }
+
+        public List<? extends String> getRestartCommandMessages() {
+            return restartCommandMessages;
+        }
+
+        public Builder restartCommandMessages(List<? extends String> restartCommandMessages) {
+            this.restartCommandMessages = restartCommandMessages;
+            return this;
+        }
+
+        public List<? extends String> getDynamicRestartMessages() {
+            return dynamicRestartMessages;
+        }
+
+        public Builder dynamicRestartMessages(List<? extends String> dynamicRestartMessages) {
+            this.dynamicRestartMessages = dynamicRestartMessages;
+            return this;
+        }
+
+        public Config build() {
+            return new Config(this);
+        }
+
+        /**
+         * Assert that all required properties are present.
+         */
+        protected void verify() {
+            assertNotNull("restartSchedule", this.restartSchedule);
+            assertNotNull("scheduledRestartMessages", this.scheduledRestartMessages);
+            assertNotNull("restartCommandMessages", this.restartCommandMessages);
+            assertNotNull("dynamicRestartMessages", this.dynamicRestartMessages);
+            assertNotNull("rawTimezone", this.rawTimezone);
+        }
+
+        private void assertNotNull(String name, Object value) {
+            if (value == null) {
+                throw new IllegalArgumentException(
+                    String.format("%s is required for config, but was not provided and had no default value", name)
+                );
+            }
+        }
+    }
+
     public Config(
-        List<? extends String> restartSchedule,
-        String rawTimezone,
-        List<? extends String> scheduledRestartMessages,
-        List<? extends String> restartCommandMessages,
-        List<? extends String> dynamicRestartMessages
+        Config.Builder builder
     ) {
-        this.timezone = ZoneId.of(rawTimezone);
-        this.cronRestartSchedule = restartSchedule.stream()
+        builder.verify();
+
+        this.timezone = ZoneId.of(builder.rawTimezone);
+        this.cronRestartSchedule = builder.restartSchedule.stream()
             .map(Config::parseRestartTime)
             .toList();
         this.restartCommandMessages = new RestartMessages(
-            restartCommandMessages.stream()
+            builder.restartCommandMessages.stream()
                 .map(Config::parseRestartMessage)
                 .toList()
         );
         this.scheduledRestartMessages = new RestartMessages(
-            scheduledRestartMessages.stream()
+            builder.scheduledRestartMessages.stream()
                 .map(Config::parseRestartMessage)
                 .toList()
         );
         this.dynamicRestartMessages = new RestartMessages(
-            dynamicRestartMessages.stream()
+            builder.dynamicRestartMessages.stream()
                 .map(Config::parseRestartMessage)
                 .toList()
         );
