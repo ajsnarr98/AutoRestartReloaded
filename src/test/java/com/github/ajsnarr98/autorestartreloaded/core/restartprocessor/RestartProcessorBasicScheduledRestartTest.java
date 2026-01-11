@@ -15,7 +15,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTest {
+public class RestartProcessorBasicScheduledRestartTest extends BaseRestartProcessorTest {
 
     private void testScheduledRestartTimeForFixedMessages(
         Instant instant,
@@ -471,6 +471,88 @@ public class RestartProcessorScheduledRestartTest extends BaseRestartProcessorTe
                 advanceTimeBy(Duration.ofMinutes(54));
                 advanceTimeBy(Duration.ofSeconds(49));
             }
+        );
+    }
+
+    @Test
+    void scheduledRestartIgnoredWhenRestartListEmpty() {
+        this.config = new TestConfigBuilder()
+            .restartSchedule(List.of())
+            .rawTimezone("UTC-5")
+            .scheduledRestartMessages(
+                List.of(
+                    "10: Server restarting in 10 seconds for scheduled time...",
+                    "5: Restarting in 5 seconds...",
+                    "4: Restarting in 4 seconds...",
+                    "3: Restarting in 3 seconds...",
+                    "2: Restarting in 2 seconds...",
+                    "1: Restarting in 1 second..."
+                )
+            )
+            .build();
+        setTime(Instant.parse("2025-12-03T11:10:49.00-05:00"));
+        RestartProcessor restartProcessor = getRestartProcessor();
+        advanceTimeBy(Duration.ofDays(1));
+
+        verify(schedulerFactory.schedulers.getFirst(), times(0))
+            .schedule(any(), anyLong());
+
+        verify(serverContext, times(0)).runCommand(anyString());
+    }
+
+    @Test
+    void scheduledRestartRightBeforeTimeStillWorksWhenNoMessagesGiven() {
+        this.config = new TestConfigBuilder()
+            .restartSchedule(
+                List.of("13:00")
+            )
+            .rawTimezone("UTC-5")
+            .scheduledRestartMessages(List.of())
+            .build();
+        setTime(Instant.parse("2025-12-03T12:59:59.00-05:00"));
+        RestartProcessor restartProcessor = getRestartProcessor();
+
+        verify(schedulerFactory.schedulers.getFirst(), times(1))
+            .schedule(any(), anyLong());
+
+        verify(serverContext, times(0)).runCommand(anyString());
+
+        advanceTimeBy(Duration.ofSeconds(1));
+
+        verify(serverContext, times(1)).runCommand(anyString());
+        verify(serverContext, times(1)).runCommand(
+            "stop"
+        );
+    }
+
+    @Test
+    void scheduledRestartRightAfterTimeStillWorksWhenNoMessagesGiven() {
+        this.config = new TestConfigBuilder()
+            .restartSchedule(
+                List.of("13:00")
+            )
+            .rawTimezone("UTC-5")
+            .scheduledRestartMessages(List.of())
+            .build();
+        setTime(Instant.parse("2025-12-03T13:00:00.00-05:00"));
+        RestartProcessor restartProcessor = getRestartProcessor();
+
+        verify(schedulerFactory.schedulers.getFirst(), times(1))
+            .schedule(any(), anyLong());
+
+        verify(serverContext, times(0)).runCommand(anyString());
+
+        advanceTimeBy(Duration.ofHours(23));
+        advanceTimeBy(Duration.ofMinutes(59));
+        advanceTimeBy(Duration.ofSeconds(59));
+
+        verify(serverContext, times(0)).runCommand(anyString());
+
+        advanceTimeBy(Duration.ofSeconds(1));
+
+        verify(serverContext, times(1)).runCommand(anyString());
+        verify(serverContext, times(1)).runCommand(
+            "stop"
         );
     }
 }

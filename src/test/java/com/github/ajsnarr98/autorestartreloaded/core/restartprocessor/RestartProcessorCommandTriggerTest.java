@@ -5,6 +5,8 @@ import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -161,5 +163,26 @@ public class RestartProcessorCommandTriggerTest extends BaseRestartProcessorTest
         verify(serverContext, times(1)).runCommand(
             "stop"
         );
+    }
+
+    @Test
+    void triggeringRestartForCommandWithoutMessagesCausesImmediateRestart() {
+        this.config = new TestConfigBuilder()
+            .restartCommandMessages(List.of())
+            .build();
+        RestartProcessor restartProcessor = getRestartProcessor();
+
+        int initialScheduledTimes = 13;
+        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes)).schedule(any(), anyLong());
+
+        restartProcessor.triggerRestartForCommand();
+
+        verify(serverContext, times(0)).runCommand(anyString());
+        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes + 1))
+            .schedule(any(), anyLong());
+
+        advanceTimeBy(Duration.ofSeconds(1));
+        verify(serverContext, times(1)).runCommand(anyString());
+        verify(serverContext, times(1)).runCommand("stop");
     }
 }

@@ -41,17 +41,9 @@ public class Config {
             // override this in testing
         }
 
-        public List<? extends String> getRestartSchedule() {
-            return restartSchedule;
-        }
-
         public Builder restartSchedule(List<? extends String> restartSchedule) {
             this.restartSchedule = restartSchedule;
             return this;
-        }
-
-        public String getRawTimezone() {
-            return rawTimezone;
         }
 
         public Builder rawTimezone(String rawTimezone) {
@@ -59,26 +51,14 @@ public class Config {
             return this;
         }
 
-        public List<? extends String> getScheduledRestartMessages() {
-            return scheduledRestartMessages;
-        }
-
         public Builder scheduledRestartMessages(List<? extends String> scheduledRestartMessages) {
             this.scheduledRestartMessages = scheduledRestartMessages;
             return this;
         }
 
-        public List<? extends String> getRestartCommandMessages() {
-            return restartCommandMessages;
-        }
-
         public Builder restartCommandMessages(List<? extends String> restartCommandMessages) {
             this.restartCommandMessages = restartCommandMessages;
             return this;
-        }
-
-        public List<? extends String> getDynamicRestartMessages() {
-            return dynamicRestartMessages;
         }
 
         public Builder dynamicRestartMessages(List<? extends String> dynamicRestartMessages) {
