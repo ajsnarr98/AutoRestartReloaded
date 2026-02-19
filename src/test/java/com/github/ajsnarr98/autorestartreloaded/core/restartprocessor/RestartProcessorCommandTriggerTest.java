@@ -5,7 +5,6 @@ import com.github.ajsnarr98.autorestartreloaded.core.RestartProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

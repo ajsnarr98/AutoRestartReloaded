@@ -182,6 +182,50 @@ public class NeoforgeConfigSpec {
             NeoforgeConfigSpec::validateRestartMessage
         );
 
+    private static final ModConfigSpec.ConfigValue<Integer> MIN_DELAY_BEFORE_AUTO_RESTART = BUILDER
+        .comment(
+            """
+                The minimum delay (in minutes) before another automatic restart
+                can happen after the server restarts/starts. Set to 0 for there
+                to be no delay.
+            """
+        )
+        .defineInRange("min_delay_before_auto_restart", 0, 0, Integer.MAX_VALUE);
+
+    private static final ModConfigSpec.ConfigValue<Boolean> RESTART_ON_LOW_TPS = BUILDER
+        .comment(
+            """
+                Set this to true if you want the server to restart when the TPS
+                (ticks per second) is below the min_tps_level for the given
+                min_low_tps_minutes number of minutes. Set to false if
+                you want to ignore this rule.
+            """
+        )
+        .define("restart_on_low_tps", true);
+
+    private static final ModConfigSpec.ConfigValue<Double> MIN_TPS_LEVEL = BUILDER
+        .comment(
+            """
+                The ticks per second the server must consistently stay below
+                for min_low_tps_minutes in order for the server to restart.
+                Only applies if restart_on_low_tps is set to true.
+               \s
+                A server is functioning properly if its ticks per second (TPS)
+                is at 20. Any time it is below 20, the server is lagging a little.
+           \s"""
+        )
+        .define("min_tps_level", 10.0);
+
+    private static final ModConfigSpec.ConfigValue<Double> MIN_LOW_TPS_MINUTES = BUILDER
+        .comment(
+            """
+                The number of minutes that the server's TPS must stay below
+                the min_tps_level before the server automatically restarts.
+                Only applies if restart_on_low_tps is set to true.
+            """
+        )
+        .define("min_low_tps_minutes", 5.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     static Config readConfig() {
@@ -191,6 +235,10 @@ public class NeoforgeConfigSpec {
             .scheduledRestartMessages(SCHEDULED_RESTART_MESSAGES.get())
             .restartCommandMessages(COMMAND_RESTART_MESSAGES.get())
             .dynamicRestartMessages(DYNAMIC_RESTART_MESSAGES.get())
+            .minMinutesBeforeAutoRestart(MIN_DELAY_BEFORE_AUTO_RESTART.get())
+            .shouldRestartForTps(RESTART_ON_LOW_TPS.get())
+            .lowTpsMinMinutes(MIN_LOW_TPS_MINUTES.get())
+            .minTpsLevel(MIN_TPS_LEVEL.get())
             .build();
     }
 

@@ -58,6 +58,13 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${property("deps.assertj")}")
 }
 
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+}
+
 loom {
     fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json") // Useful for interface injection
     accessWidenerPath = rootProject.file("src/main/resources/${property("mod.id")}.accesswidener")

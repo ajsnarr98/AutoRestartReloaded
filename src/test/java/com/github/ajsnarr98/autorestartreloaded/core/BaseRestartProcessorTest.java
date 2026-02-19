@@ -65,6 +65,7 @@ public class BaseRestartProcessorTest {
             this.scheduledRestartMessages = sampleScheduleRestartMessages;
             this.restartCommandMessages = sampleCommandRestartMessages;
             this.dynamicRestartMessages = sampleDynamicRestartMessages;
+            this.minMinutesBeforeAutoRestart = 0;
         }
     }
 

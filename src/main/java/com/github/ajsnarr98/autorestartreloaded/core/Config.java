@@ -10,7 +10,6 @@ import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.error.InvalidRestartMessageException;
 import com.github.ajsnarr98.autorestartreloaded.core.error.InvalidRestartTimeException;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -24,6 +23,11 @@ public class Config {
     private final RestartMessages restartCommandMessages;
     private final RestartMessages dynamicRestartMessages;
     private final ZoneId timezone;
+    /** Min delay after server starts before an auto restart. **/
+    private final Duration minDelayBeforeAutoRestart;
+    private final boolean shouldRestartForTps;
+    private final Duration lowTPSMinDuration;
+    private final double minTpsLevel;
 
     public static class Builder {
 
@@ -32,6 +36,10 @@ public class Config {
         protected List<? extends String> scheduledRestartMessages;
         protected List<? extends String> restartCommandMessages;
         protected List<? extends String> dynamicRestartMessages;
+        protected int minMinutesBeforeAutoRestart;
+        protected boolean shouldRestartForTps;
+        protected double lowTpsMinMinutes;
+        protected double minTpsLevel;
 
         public Builder() {
             setupDefaults();
@@ -63,6 +71,26 @@ public class Config {
 
         public Builder dynamicRestartMessages(List<? extends String> dynamicRestartMessages) {
             this.dynamicRestartMessages = dynamicRestartMessages;
+            return this;
+        }
+
+        public Builder minMinutesBeforeAutoRestart(int minMinutesBeforeAutoRestart) {
+            this.minMinutesBeforeAutoRestart = minMinutesBeforeAutoRestart;
+            return this;
+        }
+
+        public Builder shouldRestartForTps(boolean shouldRestartForTps) {
+            this.shouldRestartForTps = shouldRestartForTps;
+            return this;
+        }
+
+        public Builder lowTpsMinMinutes(double lowTpsMinMinutes) {
+            this.lowTpsMinMinutes = lowTpsMinMinutes;
+            return this;
+        }
+
+        public Builder minTpsLevel(double minTpsLevel) {
+            this.minTpsLevel = minTpsLevel;
             return this;
         }
 
@@ -114,6 +142,10 @@ public class Config {
                 .map(Config::parseRestartMessage)
                 .toList()
         );
+        this.minDelayBeforeAutoRestart = Duration.ofMinutes(builder.minMinutesBeforeAutoRestart);
+        this.shouldRestartForTps = builder.shouldRestartForTps;
+        this.lowTPSMinDuration = Duration.ofSeconds((int)(builder.lowTpsMinMinutes * 60));
+        this.minTpsLevel = builder.minTpsLevel;
     }
 
     public RestartMessages getRestartCommandMessages() {
@@ -132,11 +164,15 @@ public class Config {
         return timezone;
     }
 
+    public Duration getMinDelayBeforeAutoRestart() {
+        return minDelayBeforeAutoRestart;
+    }
+
     /**
      * @param now the time (ms) to start searching from
      */
     public Optional<Instant> nextPreScheduledRestartTime(Instant now) {
-        @Nullable Instant closest = null;
+        Instant closest = null;
 
         ZonedDateTime zonedNow = ZonedDateTime.ofInstant(now, getTimezone());
 

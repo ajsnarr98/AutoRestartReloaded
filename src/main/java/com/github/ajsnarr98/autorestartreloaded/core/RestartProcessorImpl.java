@@ -19,6 +19,7 @@ public class RestartProcessorImpl implements RestartProcessor {
     private Config config;
     private final RestartScheduler restartScheduler;
     private final Clock clock;
+    private final Instant serverStartTime;
 
     public RestartProcessorImpl(
         QueuedTaskProvider taskProvider,
@@ -35,6 +36,7 @@ public class RestartProcessorImpl implements RestartProcessor {
             schedulerFactory
         );
         this.clock = clock;
+        this.serverStartTime = clock.instant();
         setupQueueForScheduledTimes();
     }
 
@@ -62,10 +64,10 @@ public class RestartProcessorImpl implements RestartProcessor {
     private void setupQueueForScheduledTimes() {
         mutex.lock();
         try {
-            AutoRestartReloaded.LOGGER.info("Attempting to schedule next restart");
             restartScheduler.cancelAll();
+            currentRestartType = RestartType.NONE;
 
-            Instant now = clock.instant();
+            Instant now = max(clock.instant(), serverStartTime.plus(config.getMinDelayBeforeAutoRestart()));
             Optional<Instant> nextTime = config.nextPreScheduledRestartTime(now);
             while (nextTime.isPresent()) {
                 if (restartScheduler.scheduleRestartWithMessages(nextTime.get(), config.getScheduledRestartMessages())) {
@@ -79,9 +81,18 @@ public class RestartProcessorImpl implements RestartProcessor {
                 now = nextTime.get().plus(Duration.ofMinutes(1));
                 nextTime = config.nextPreScheduledRestartTime(now);
             }
+            if (currentRestartType == RestartType.SCHEDULED) {
+                AutoRestartReloaded.LOGGER.info("Scheduled next server restart");
+            } else {
+                AutoRestartReloaded.LOGGER.info("Skipped scheduling next server restart");
+            }
         } finally {
             mutex.unlock();
         }
+    }
+
+    private <C extends Comparable<C>> C max(C first, C second) {
+        return (first.compareTo(second) >= 0) ? first : second;
     }
 
     @Override
