@@ -208,23 +208,25 @@ public class NeoforgeConfigSpec {
             """
                 The ticks per second the server must consistently stay below
                 for min_low_tps_minutes in order for the server to restart.
-                Only applies if restart_on_low_tps is set to true.
+                Only applies if restart_on_low_tps is set to true. Must be
+                greater than 0.
                \s
                 A server is functioning properly if its ticks per second (TPS)
-                is at 20. Any time it is below 20, the server is lagging a little.
+                is at 20. The TPS does not go any higher than this.
            \s"""
         )
-        .define("min_tps_level", 10.0);
+        .define("min_tps_level", 10.0, NeoforgeConfigSpec::isGreaterThan0);
 
     private static final ModConfigSpec.ConfigValue<Double> MIN_LOW_TPS_MINUTES = BUILDER
         .comment(
             """
                 The number of minutes that the server's TPS must stay below
                 the min_tps_level before the server automatically restarts.
-                Only applies if restart_on_low_tps is set to true.
+                Only applies if restart_on_low_tps is set to true. Must be
+                greater than 0.
             """
         )
-        .define("min_low_tps_minutes", 5.0);
+        .define("min_low_tps_minutes", 5.0, NeoforgeConfigSpec::isGreaterThan0);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -251,6 +253,12 @@ public class NeoforgeConfigSpec {
     private static boolean validateRestartMessage(final Object obj) {
         if (!(obj instanceof String)) return false;
         return Config.validateRestartMessage((String) obj);
+    }
+
+    private static boolean isGreaterThan0(final Object obj) {
+        if (!(obj instanceof Number)) return false;
+
+        return ((Number) obj).doubleValue() > 0;
     }
 }
 //?}

@@ -66,6 +66,9 @@ public class BaseRestartProcessorTest {
             this.restartCommandMessages = sampleCommandRestartMessages;
             this.dynamicRestartMessages = sampleDynamicRestartMessages;
             this.minMinutesBeforeAutoRestart = 0;
+            this.shouldRestartForTps = false;
+            this.minTpsLevel = 10;
+            this.lowTpsMinMinutes = 1;
         }
     }
 

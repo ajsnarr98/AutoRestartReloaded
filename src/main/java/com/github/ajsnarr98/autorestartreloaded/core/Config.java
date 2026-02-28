@@ -160,6 +160,18 @@ public class Config {
         return scheduledRestartMessages;
     }
 
+    public boolean isShouldRestartForTps() {
+        return shouldRestartForTps;
+    }
+
+    public Duration getLowTPSMinDuration() {
+        return lowTPSMinDuration;
+    }
+
+    public double getMinTpsLevel() {
+        return minTpsLevel;
+    }
+
     public ZoneId getTimezone() {
         return timezone;
     }
