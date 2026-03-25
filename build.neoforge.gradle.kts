@@ -28,6 +28,7 @@ repositories {
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+    maven("https://repo.sleeping.town/") { name = "sleeping.town" }
 }
 
 neoForge {
@@ -62,6 +63,7 @@ neoForge {
 
 dependencies {
     implementation("com.cronutils:cron-utils:${property("deps.cronutils")}")
+    implementation("folk.sisby:kaleido-config:${property("deps.kaleido-config")}")
 
     testImplementation(platform("org.junit:junit-bom:${property("deps.junit-bom")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")

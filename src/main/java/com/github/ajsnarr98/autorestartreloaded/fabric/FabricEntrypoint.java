@@ -4,6 +4,7 @@ package com.github.ajsnarr98.autorestartreloaded.fabric;
 
 import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
+import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.DefaultTaskProvider;
 import com.github.ajsnarr98.autorestartreloaded.core.task.executer.DefaultSchedulerFactory;
@@ -11,6 +12,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 
 import java.io.IOException;
@@ -19,6 +21,8 @@ import java.time.Clock;
 public class FabricEntrypoint implements ModInitializer {
     @Override
     public void onInitialize() {
+        ConfigSpec.load(FabricLoader.getInstance().getConfigDir());
+
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             AutoRestartReloaded.LOGGER.debug("registering /restart command");
             dispatcher.register(
@@ -29,7 +33,7 @@ public class FabricEntrypoint implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            Config config = FabricConfigSpec.readConfig();
+            Config config = ConfigSpec.readConfig();
             AutoRestartReloaded.getInstance().initialize(
                 new DefaultTaskProvider(),
                 new RealServerContext(server),

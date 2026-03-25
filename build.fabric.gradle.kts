@@ -55,6 +55,7 @@ dependencies {
 
     // config loader
     implementation("folk.sisby:kaleido-config:${property("deps.kaleido-config")}")
+    include("folk.sisby:kaleido-config:${property("deps.kaleido-config")}")
 
     testImplementation(platform("org.junit:junit-bom:${property("deps.junit-bom")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
