@@ -2,7 +2,7 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 
 //? neoforge {
 
-/*import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
@@ -39,9 +39,10 @@ public class NeoforgeEntrypoint {
         @SubscribeEvent
         public void onRegisterCommands(RegisterCommandsEvent event) {
             AutoRestartReloaded.LOGGER.debug("registering /restart command");
+            Config config = ConfigSpec.readConfig();
             event.getDispatcher().register(
                 LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
-                    .requires(source -> source.hasPermission(4))
+                    .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
                     .executes(new NeoforgeRestartCommand())
             );
         }
@@ -65,4 +66,4 @@ public class NeoforgeEntrypoint {
         }
     }
 }
-*///?}
+//?}

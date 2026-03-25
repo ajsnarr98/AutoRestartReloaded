@@ -29,6 +29,7 @@ public class Config {
     private final boolean shouldRestartForTps;
     private final Duration lowTPSMinDuration;
     private final double minTpsLevel;
+    private final int commandPermissionLevel;
 
     public static class Builder {
 
@@ -41,6 +42,7 @@ public class Config {
         protected boolean shouldRestartForTps;
         protected double lowTpsMinMinutes;
         protected double minTpsLevel;
+        protected int commandPermissionLevel;
 
         public Builder() {
             setupDefaults();
@@ -92,6 +94,11 @@ public class Config {
 
         public Builder minTpsLevel(double minTpsLevel) {
             this.minTpsLevel = minTpsLevel;
+            return this;
+        }
+
+        public Builder commandPermissionLevel(int commandPermissionLevel) {
+            this.commandPermissionLevel = commandPermissionLevel;
             return this;
         }
 
@@ -147,6 +154,7 @@ public class Config {
         this.shouldRestartForTps = builder.shouldRestartForTps;
         this.lowTPSMinDuration = Duration.ofSeconds((int)(builder.lowTpsMinMinutes * 60));
         this.minTpsLevel = builder.minTpsLevel;
+        this.commandPermissionLevel = builder.commandPermissionLevel;
     }
 
     public RestartMessages getRestartCommandMessages() {
@@ -179,6 +187,10 @@ public class Config {
 
     public Duration getMinDelayBeforeAutoRestart() {
         return minDelayBeforeAutoRestart;
+    }
+
+    public int getCommandPermissionLevel() {
+        return commandPermissionLevel;
     }
 
     /**

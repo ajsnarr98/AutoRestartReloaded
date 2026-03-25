@@ -2,7 +2,7 @@ package com.github.ajsnarr98.autorestartreloaded.fabric;
 
 //? fabric {
 
-import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+/*import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
@@ -22,18 +22,18 @@ public class FabricEntrypoint implements ModInitializer {
     @Override
     public void onInitialize() {
         ConfigSpec.load(FabricLoader.getInstance().getConfigDir());
+        Config config = ConfigSpec.readConfig();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             AutoRestartReloaded.LOGGER.debug("registering /restart command");
             dispatcher.register(
                 LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
-                    .requires(source -> source.hasPermission(4))
+                    .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
                     .executes(new FabricRestartCommand())
             );
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            Config config = ConfigSpec.readConfig();
             AutoRestartReloaded.getInstance().initialize(
                 new DefaultTaskProvider(),
                 new RealServerContext(server),
@@ -53,5 +53,4 @@ public class FabricEntrypoint implements ModInitializer {
         });
     }
 }
-
-//?}
+*///?}
