@@ -38,13 +38,15 @@ public class NeoforgeEntrypoint {
 
         @SubscribeEvent
         public void onRegisterCommands(RegisterCommandsEvent event) {
-            AutoRestartReloaded.LOGGER.debug("registering /restart command");
             Config config = ConfigSpec.readConfig();
-            event.getDispatcher().register(
-                LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
-                    .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
-                    .executes(new NeoforgeRestartCommand())
-            );
+            if (config.isRestartCommandEnabled()) {
+                AutoRestartReloaded.LOGGER.debug("registering /restart command");
+                event.getDispatcher().register(
+                    LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
+                        .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
+                        .executes(new NeoforgeRestartCommand())
+                );
+            }
         }
 
         @SubscribeEvent

@@ -30,6 +30,7 @@ public class Config {
     private final Duration lowTPSMinDuration;
     private final double minTpsLevel;
     private final int commandPermissionLevel;
+    private final boolean restartCommandEnabled;
 
     public static class Builder {
 
@@ -43,6 +44,7 @@ public class Config {
         protected double lowTpsMinMinutes;
         protected double minTpsLevel;
         protected int commandPermissionLevel;
+        protected boolean restartCommandEnabled;
 
         public Builder() {
             setupDefaults();
@@ -102,6 +104,11 @@ public class Config {
             return this;
         }
 
+        public Builder restartCommandEnabled(boolean restartCommandEnabled) {
+            this.restartCommandEnabled = restartCommandEnabled;
+            return this;
+        }
+
         public Config build() {
             return new Config(this);
         }
@@ -155,6 +162,7 @@ public class Config {
         this.lowTPSMinDuration = Duration.ofSeconds((int)(builder.lowTpsMinMinutes * 60));
         this.minTpsLevel = builder.minTpsLevel;
         this.commandPermissionLevel = builder.commandPermissionLevel;
+        this.restartCommandEnabled = builder.restartCommandEnabled;
     }
 
     public RestartMessages getRestartCommandMessages() {
@@ -191,6 +199,10 @@ public class Config {
 
     public int getCommandPermissionLevel() {
         return commandPermissionLevel;
+    }
+
+    public boolean isRestartCommandEnabled() {
+        return restartCommandEnabled;
     }
 
     /**

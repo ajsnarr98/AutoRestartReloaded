@@ -24,14 +24,16 @@ public class FabricEntrypoint implements ModInitializer {
         ConfigSpec.load(FabricLoader.getInstance().getConfigDir());
         Config config = ConfigSpec.readConfig();
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            AutoRestartReloaded.LOGGER.debug("registering /restart command");
-            dispatcher.register(
-                LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
-                    .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
-                    .executes(new FabricRestartCommand())
-            );
-        });
+        if (config.isCommandEnabled()) {
+            CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+                AutoRestartReloaded.LOGGER.debug("registering /restart command");
+                dispatcher.register(
+                    LiteralArgumentBuilder.<CommandSourceStack>literal("restart")
+                        .requires(source -> source.hasPermission(config.getCommandPermissionLevel()))
+                        .executes(new FabricRestartCommand())
+                );
+            });
+        }
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             AutoRestartReloaded.getInstance().initialize(

@@ -58,6 +58,9 @@ public class ConfigSpec extends WrappedConfig {
 
     public static class Command implements Section {
 
+        @Comment("Whether the /restart command is registered and available on the server.")
+        public boolean restart_command_enabled = true;
+
         @Comment({
             "The permission level required to run the /restart command.",
             "Minecraft permission levels range from 0 (all players) to 4 (full operator).",
@@ -131,6 +134,7 @@ public class ConfigSpec extends WrappedConfig {
             .lowTpsMinMinutes(INSTANCE.dynamic.min_low_tps_minutes)
             .minTpsLevel(INSTANCE.dynamic.min_tps_level)
             .commandPermissionLevel(INSTANCE.command.command_permission_level)
+            .restartCommandEnabled(INSTANCE.command.restart_command_enabled)
             .build();
     }
 }
