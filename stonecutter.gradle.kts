@@ -6,7 +6,7 @@ plugins {
     // id("me.modmuss50.mod-publish-plugin") version "1.0.+" apply false
 }
 
-stonecutter active "1.21.10-neoforge"
+stonecutter active "1.21.10-fabric"
 
 /*
 stonecutter tasks {
@@ -22,6 +22,7 @@ for (version in stonecutter.versions.map { it.version }.distinct()) tasks.regist
 
 // See https://stonecutter.kikugie.dev/wiki/config/params
 stonecutter parameters {
+    // this is where we set the boolean to determine if we are fabric or neoforge
     constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "neoforge")
 
     // Allow processing Minecraft core shaders

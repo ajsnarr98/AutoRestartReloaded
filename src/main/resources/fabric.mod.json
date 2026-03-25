@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.ajsnarr98.autorestartreloaded.TemplateMod"
+      "com.github.ajsnarr98.autorestartreloaded.fabric.FabricEntrypoint"
     ]
   },
   "accessWidener": "autorestartreloaded.accesswidener",

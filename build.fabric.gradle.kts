@@ -28,6 +28,7 @@ repositories {
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+    maven("https://repo.sleeping.town/" )
 }
 
 dependencies {
@@ -49,7 +50,11 @@ dependencies {
 
     fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0")
 
+    // cron utils
     implementation("com.cronutils:cron-utils:${property("deps.cronutils")}")
+
+    // config loader
+    implementation("folk.sisby:kaleido-config:${property("deps.kaleido-config")}")
 
     testImplementation(platform("org.junit:junit-bom:${property("deps.junit-bom")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
