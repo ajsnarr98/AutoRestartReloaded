@@ -14,7 +14,7 @@ public class TpsTracker {
     private static final long NS_PER_SECOND = 1_000_000_000;
 
     private Config config;
-    private final Clock clock;
+    private Clock clock;
 
     /** The time of our last "healthy" tick where we were above the min tps threshold. **/
     private Instant lastTimeOfTpsAboveThreshold;
@@ -25,15 +25,16 @@ public class TpsTracker {
      */
     private long tickTimeNanosThreshold;
 
-    public TpsTracker(Clock clock, Config config) {
+    public TpsTracker(Config config, Clock clock) {
         this.clock = clock;
         this.config = config;
         reset();
     }
 
     /** Replace the config and reset TPS tracking. */
-    public void updateConfig(Config config) {
+    public void updateConfig(Config config, Clock clock) {
         this.config = config;
+        this.clock = clock;
         reset();
     }
 

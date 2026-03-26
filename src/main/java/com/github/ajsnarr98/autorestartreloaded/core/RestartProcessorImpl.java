@@ -25,7 +25,7 @@ public class RestartProcessorImpl implements RestartProcessor {
     private final SchedulerFactory.Scheduler minTimeCheckScheduler;
     private final List<ScheduledFuture<?>> minTimeCheckTasks = new ArrayList<>();
 
-    private final Clock clock;
+    private Clock clock;
     private final Instant serverStartTime;
     private final TpsTracker tpsTracker;
 
@@ -47,20 +47,20 @@ public class RestartProcessorImpl implements RestartProcessor {
         );
         this.clock = clock;
         this.serverStartTime = clock.instant();
-        this.tpsTracker = new TpsTracker(clock, config);
+        this.tpsTracker = new TpsTracker(config, clock);
         this.minTimeCheckScheduler = schedulerFactory.newDaemonThreadScheduler(
             SchedulerFactory.Type.MIN_TIME_CHECKER
         );
-        getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
+        setHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
 
         setupQueueForScheduledTimes();
     }
 
     /**
-     * Returns the best current value of {@link RestartProcessorImpl#hasBeenMinTimeBeforeRestart},
+     * Sets the best current value of {@link RestartProcessorImpl#hasBeenMinTimeBeforeRestart},
      * and has the side effect of scheduling a future check for when it needs to change to true.
      */
-    private boolean getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded() {
+    private void setHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded() {
         Instant minInstant = serverStartTime.plus(config.getMinDelayBeforeAutoRestart());
         this.hasBeenMinTimeBeforeRestart = clock.instant().isAfter(minInstant);
 
@@ -70,14 +70,12 @@ public class RestartProcessorImpl implements RestartProcessor {
             cancelAllMinTimeCheckTasks();
             minTimeCheckTasks.add(
                 minTimeCheckScheduler.schedule(
-                    this::getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded,
+                    this::setHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded,
                     // make sure just in case that we always schedule something in the future
                     Math.max(dif.toMillis(), 1)
                 )
             );
         }
-
-        return this.hasBeenMinTimeBeforeRestart;
     }
 
     private void cancelAllMinTimeCheckTasks() {
@@ -89,10 +87,16 @@ public class RestartProcessorImpl implements RestartProcessor {
 
     @Override
     public void onConfigUpdated(Config config) {
-        // TODO handle clock updating
         this.config = config;
-        tpsTracker.updateConfig(config);
-        getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
+        // Adopt the new timezone. In tests, Clock.withZone() is overridden to mutate
+        // the existing TestClock in place and return the same instance, so all internal
+        // components (RestartScheduler, TpsTracker) that share the clock reference
+        // automatically see the updated zone without requiring their own clock fields
+        // to be reassigned.
+        this.clock = this.clock.withZone(config.getTimezone());
+        this.tpsTracker.updateConfig(config, clock);
+        this.restartScheduler.setClock(clock);
+        setHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
         setupQueueForScheduledTimes();
     }
 

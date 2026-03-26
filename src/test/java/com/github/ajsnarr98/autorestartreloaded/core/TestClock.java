@@ -48,9 +48,22 @@ public class TestClock extends Clock {
         return clock.getZone();
     }
 
+    /**
+     * Updates this clock's zone in place and returns {@code this}.
+     *
+     * <p>Unlike the standard {@link Clock#withZone} contract (which returns a new
+     * clock), this implementation mutates the zone on the same object so that all
+     * code holding a reference to this {@code TestClock} — including
+     * {@link com.github.ajsnarr98.autorestartreloaded.core.task.RestartScheduler}
+     * and {@link com.github.ajsnarr98.autorestartreloaded.core.task.TpsTracker}
+     * — always share one mutable clock instance. This makes it easy to assert that
+     * time advances via {@link #advanceTimeBy} still drive the processor under test
+     * after a config update that includes a new timezone.
+     */
     @Override
     public Clock withZone(ZoneId zone) {
-        return new TestClock(this.clock.withZone(zone), this.listeners);
+        this.clock = this.clock.withZone(zone);
+        return this;
     }
 
     @Override

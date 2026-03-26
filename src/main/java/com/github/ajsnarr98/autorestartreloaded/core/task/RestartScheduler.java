@@ -22,13 +22,17 @@ public class RestartScheduler implements Closeable {
     private final List<ScheduledFuture<?>> tasks = new ArrayList<>();
     private final QueuedTaskProvider taskProvider;
     private final ServerContext serverContext;
-    private final Clock clock;
+    private Clock clock;
 
     public RestartScheduler(QueuedTaskProvider taskProvider, ServerContext serverContext, Clock clock, SchedulerFactory schedulerFactory) {
         this.taskProvider = taskProvider;
         this.clock = clock;
         this.serverContext = serverContext;
         this.scheduler = schedulerFactory.newDaemonThreadScheduler(SchedulerFactory.Type.RESTART);
+    }
+
+    public void setClock(Clock clock) {
+        this.clock = clock;
     }
 
     public boolean hasRunningTasks() {

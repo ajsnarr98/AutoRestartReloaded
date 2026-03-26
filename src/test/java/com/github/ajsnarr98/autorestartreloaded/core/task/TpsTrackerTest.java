@@ -28,7 +28,7 @@ public class TpsTrackerTest extends BaseRestartProcessorTest {
         Config config = new TestConfigBuilder()
             .shouldRestartForTps(true)
             .build();
-        return new TpsTracker(clock, config);
+        return new TpsTracker(config, clock);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class TpsTrackerTest extends BaseRestartProcessorTest {
             .shouldRestartForTps(true)
             .lowTpsMinMinutes(2)
             .build();
-        tracker.updateConfig(newConfig);
+        tracker.updateConfig(newConfig, clock);
         assertThat(tracker.needToRestart()).isFalse();
     }
 
