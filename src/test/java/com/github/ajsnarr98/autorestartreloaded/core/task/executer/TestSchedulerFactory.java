@@ -86,8 +86,8 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
 
     public static class TestScheduler implements Scheduler, TestClock.TimeChangedListener {
 
-        private final ReentrantLock mutex = new ReentrantLock();
-        public List<TestFuture<?>> futures = new ArrayList<>();
+        public final ReentrantLock mutex = new ReentrantLock();
+        public final List<TestFuture<?>> futures = new ArrayList<>();
         private TestClock clock;
         private Type type;
 
@@ -118,26 +118,35 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
 
         @Override
         public void onTimeUpdated(TestClock clock) {
-            // run all tasks scheduled for before this time
+            // Collect all due tasks first (under the lock), then run them without
+            // holding the lock. This prevents ConcurrentModificationException when
+            // a task calls schedule() and adds to `futures` during iteration.
+            List<TestFuture<?>> toRun = new ArrayList<>();
             mutex.lock();
-            this.clock = clock;
-            Iterator<TestFuture<?>> it = futures.iterator();
-            TestFuture<?> next;
-            while (it.hasNext()) {
-                next = it.next();
-                next.setClock(clock);
-                if (next.hasBeenCanceled) {
-                    it.remove();
-                } else if (next.getDelay(TimeUnit.MILLISECONDS) <= 0) {
-                    // this task should have already run, so run it
-                    try {
-                        next.get();
-                    } catch (ExecutionException | InterruptedException ignored) {
+            try {
+                this.clock = clock;
+                Iterator<TestFuture<?>> it = futures.iterator();
+                while (it.hasNext()) {
+                    TestFuture<?> next = it.next();
+                    next.setClock(clock);
+                    if (next.hasBeenCanceled) {
+                        it.remove();
+                    } else if (next.getDelay(TimeUnit.MILLISECONDS) <= 0) {
+                        // this task should have already run, prepare to run it
+                        toRun.add(next);
+                        it.remove();
                     }
-                    it.remove();
+                }
+            } finally {
+                mutex.unlock();
+            }
+            // run all tasks we still wanted toRun
+            for (TestFuture<?> future : toRun) {
+                try {
+                    future.get();
+                } catch (ExecutionException | InterruptedException ignored) {
                 }
             }
-            mutex.unlock();
         }
     }
 

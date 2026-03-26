@@ -1,4 +1,6 @@
-package com.github.ajsnarr98.autorestartreloaded.core;
+package com.github.ajsnarr98.autorestartreloaded.core.task;
+
+import com.github.ajsnarr98.autorestartreloaded.core.Config;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -23,7 +25,7 @@ public class TpsTracker {
      */
     private long tickTimeNanosThreshold;
 
-    TpsTracker(Clock clock, Config config) {
+    public TpsTracker(Clock clock, Config config) {
         this.clock = clock;
         this.config = config;
         reset();

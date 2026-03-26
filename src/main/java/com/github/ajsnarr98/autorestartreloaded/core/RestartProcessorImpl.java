@@ -4,6 +4,7 @@ import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.QueuedTaskProvider;
 import com.github.ajsnarr98.autorestartreloaded.core.task.RestartScheduler;
+import com.github.ajsnarr98.autorestartreloaded.core.task.TpsTracker;
 import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFactory;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class RestartProcessorImpl implements RestartProcessor {
         this.minTimeCheckScheduler = schedulerFactory.newDaemonThreadScheduler(
             SchedulerFactory.Type.MIN_TIME_CHECKER
         );
-        this.hasBeenMinTimeBeforeRestart = getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
+        getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
 
         setupQueueForScheduledTimes();
     }
@@ -61,9 +62,9 @@ public class RestartProcessorImpl implements RestartProcessor {
      */
     private boolean getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded() {
         Instant minInstant = serverStartTime.plus(config.getMinDelayBeforeAutoRestart());
-        boolean hasBeenMinTimeBeforeRestart = clock.instant().isAfter(minInstant);
+        this.hasBeenMinTimeBeforeRestart = clock.instant().isAfter(minInstant);
 
-        if (!hasBeenMinTimeBeforeRestart) {
+        if (!this.hasBeenMinTimeBeforeRestart) {
             Duration dif = Duration.between(clock.instant(), minInstant);
 
             cancelAllMinTimeCheckTasks();
@@ -76,7 +77,7 @@ public class RestartProcessorImpl implements RestartProcessor {
             );
         }
 
-        return hasBeenMinTimeBeforeRestart;
+        return this.hasBeenMinTimeBeforeRestart;
     }
 
     private void cancelAllMinTimeCheckTasks() {
@@ -91,7 +92,7 @@ public class RestartProcessorImpl implements RestartProcessor {
         // TODO handle clock updating
         this.config = config;
         tpsTracker.updateConfig(config);
-        this.hasBeenMinTimeBeforeRestart = getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
+        getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
         setupQueueForScheduledTimes();
     }
 
