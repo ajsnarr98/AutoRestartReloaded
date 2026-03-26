@@ -4,7 +4,7 @@ import java.util.concurrent.ScheduledFuture;
 
 public interface SchedulerFactory {
 
-    Scheduler newDaemonThreadScheduler();
+    Scheduler newDaemonThreadScheduler(Type type);
 
     /**
      * Creates and executes a periodic action that becomes enabled first after
@@ -17,7 +17,17 @@ public interface SchedulerFactory {
      */
     ScheduledFuture<?> newDaemonThreadLoopingTask(Runnable task, long initialDelay, long periodMs);
 
+    /**
+     * Names used to aid in testing to help distinguish schedulers.
+     */
+    enum Type {
+        RESTART, MIN_TIME_CHECKER
+    }
+
     interface Scheduler {
+
+        Type getType();
+
         /**
          * Creates and executes a ScheduledFuture that runs after the given delay.
          *

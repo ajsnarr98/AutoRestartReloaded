@@ -43,10 +43,10 @@ public class RestartProcessorDelayedScheduledRestartTest extends BaseRestartProc
         setTime(instant);
         RestartProcessor restartProcessor = getRestartProcessor();
 
-        verify(schedulerFactory.schedulers.getFirst(), times(expectedScheduledDelays.length))
+        verify(assertRestartScheduler(), times(expectedScheduledDelays.length))
             .schedule(any(), anyLong());
         for (long delay : expectedScheduledDelays) {
-            verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(delay));
+            verify(assertRestartScheduler()).schedule(any(), eq(delay));
         }
 
         advanceTimeUntil1SecondBeforeFirstMessage.run();

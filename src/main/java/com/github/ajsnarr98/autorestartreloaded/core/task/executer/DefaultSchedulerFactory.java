@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 public class DefaultSchedulerFactory implements SchedulerFactory {
 
     @Override
-    public Scheduler newDaemonThreadScheduler() {
-        return new DefaultScheduler();
+    public Scheduler newDaemonThreadScheduler(Type type) {
+        return new DefaultScheduler(type);
     }
 
     @Override
@@ -31,7 +31,17 @@ public class DefaultSchedulerFactory implements SchedulerFactory {
 
     private static class DefaultScheduler implements SchedulerFactory.Scheduler {
 
+        private final Type type;
         private final ScheduledExecutorService scheduler = newExecutorService();
+
+        public DefaultScheduler(Type type) {
+            this.type = type;
+        }
+
+        @Override
+        public Type getType() {
+            return type;
+        }
 
         @Override
         public ScheduledFuture<?> schedule(Runnable task, long delayMs) {

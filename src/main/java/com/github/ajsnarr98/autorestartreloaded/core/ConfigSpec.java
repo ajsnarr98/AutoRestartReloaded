@@ -14,7 +14,7 @@ public class ConfigSpec extends WrappedConfig {
 
     @Comment("Minimum delay (in minutes) after server startup before the first auto-restart. 0 means no delay.")
     @IntegerRange(min = 0, max = Integer.MAX_VALUE)
-    public int min_delay_before_auto_restart = 0;
+    public int min_delay_before_auto_restart = 15;
 
     public Schedule schedule = new Schedule();
     public Command command = new Command();

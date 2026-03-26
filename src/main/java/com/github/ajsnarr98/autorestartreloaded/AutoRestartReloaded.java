@@ -52,6 +52,10 @@ public class AutoRestartReloaded {
         this.restartProcessor.triggerRestartForCommand();
     }
 
+    public void onServerTick(long avgTickTimeNanos) {
+        this.restartProcessor.onServerTick(avgTickTimeNanos);
+    }
+
     public void onServerStopped() throws IOException {
         this.restartProcessor.close();
         this.restartProcessor = null;

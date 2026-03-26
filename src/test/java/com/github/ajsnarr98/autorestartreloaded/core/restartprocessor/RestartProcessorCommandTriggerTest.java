@@ -23,29 +23,22 @@ public class RestartProcessorCommandTriggerTest extends BaseRestartProcessorTest
 
         int initialScheduledTimes = 13;
 
-        assertThat(schedulerFactory.schedulers.size())
-            .as("Before command trigger")
-            .isEqualTo(1);
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes)).schedule(any(), anyLong());
+        verify(assertRestartScheduler(), times(initialScheduledTimes)).schedule(any(), anyLong());
 
         restartProcessor.triggerRestartForCommand();
 
-        assertThat(schedulerFactory.schedulers.size())
-            .as("After command trigger")
-            .isEqualTo(1);
-
         verify(serverContext, times(0)).runCommand(anyString());
         // expect 6 more scheduled
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes + 7))
+        verify(assertRestartScheduler(), times(initialScheduledTimes + 7))
             .schedule(any(), anyLong());
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(1_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(6_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(7_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(8_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(9_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(10_000L));
-        verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(11_000L));
-        verify(schedulerFactory.schedulers.getFirst(), times(0)).schedule(any(), eq(12000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(1_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(6_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(7_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(8_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(9_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(10_000L));
+        verify(assertRestartScheduler()).schedule(any(), eq(11_000L));
+        verify(assertRestartScheduler(), times(0)).schedule(any(), eq(12000L));
 
         verify(serverContext, times(0)).runCommand(anyString());
 
@@ -97,13 +90,13 @@ public class RestartProcessorCommandTriggerTest extends BaseRestartProcessorTest
         RestartProcessor restartProcessor = getRestartProcessor();
 
         int initialScheduledTimes = 13;
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes)).schedule(any(), anyLong());
+        verify(assertRestartScheduler(), times(initialScheduledTimes)).schedule(any(), anyLong());
 
         restartProcessor.triggerRestartForCommand();
 
         verify(serverContext, times(0)).runCommand(anyString());
         // expect 6 more scheduled
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes + 7))
+        verify(assertRestartScheduler(), times(initialScheduledTimes + 7))
             .schedule(any(), anyLong());
 
         advanceTimeBy(Duration.ofSeconds(9));
@@ -115,7 +108,7 @@ public class RestartProcessorCommandTriggerTest extends BaseRestartProcessorTest
         restartProcessor.triggerRestartForCommand();
 
         // verify new restart time is scheduled
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes + 14))
+        verify(assertRestartScheduler(), times(initialScheduledTimes + 14))
             .schedule(any(), anyLong());
 
         // verify second restart
@@ -172,12 +165,12 @@ public class RestartProcessorCommandTriggerTest extends BaseRestartProcessorTest
         RestartProcessor restartProcessor = getRestartProcessor();
 
         int initialScheduledTimes = 13;
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes)).schedule(any(), anyLong());
+        verify(assertRestartScheduler(), times(initialScheduledTimes)).schedule(any(), anyLong());
 
         restartProcessor.triggerRestartForCommand();
 
         verify(serverContext, times(0)).runCommand(anyString());
-        verify(schedulerFactory.schedulers.getFirst(), times(initialScheduledTimes + 1))
+        verify(assertRestartScheduler(), times(initialScheduledTimes + 1))
             .schedule(any(), anyLong());
 
         advanceTimeBy(Duration.ofSeconds(1));

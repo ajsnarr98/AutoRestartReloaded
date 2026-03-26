@@ -10,7 +10,10 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class RestartProcessorImpl implements RestartProcessor {
@@ -18,8 +21,14 @@ public class RestartProcessorImpl implements RestartProcessor {
     private RestartType currentRestartType = RestartType.NONE;
     private Config config;
     private final RestartScheduler restartScheduler;
+    private final SchedulerFactory.Scheduler minTimeCheckScheduler;
+    private final List<ScheduledFuture<?>> minTimeCheckTasks = new ArrayList<>();
+
     private final Clock clock;
     private final Instant serverStartTime;
+    private final TpsTracker tpsTracker;
+
+    private boolean hasBeenMinTimeBeforeRestart;
 
     public RestartProcessorImpl(
         QueuedTaskProvider taskProvider,
@@ -37,13 +46,52 @@ public class RestartProcessorImpl implements RestartProcessor {
         );
         this.clock = clock;
         this.serverStartTime = clock.instant();
+        this.tpsTracker = new TpsTracker(clock, config);
+        this.minTimeCheckScheduler = schedulerFactory.newDaemonThreadScheduler(
+            SchedulerFactory.Type.MIN_TIME_CHECKER
+        );
+        this.hasBeenMinTimeBeforeRestart = getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
+
         setupQueueForScheduledTimes();
+    }
+
+    /**
+     * Returns the best current value of {@link RestartProcessorImpl#hasBeenMinTimeBeforeRestart},
+     * and has the side effect of scheduling a future check for when it needs to change to true.
+     */
+    private boolean getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded() {
+        Instant minInstant = serverStartTime.plus(config.getMinDelayBeforeAutoRestart());
+        boolean hasBeenMinTimeBeforeRestart = clock.instant().isAfter(minInstant);
+
+        if (!hasBeenMinTimeBeforeRestart) {
+            Duration dif = Duration.between(clock.instant(), minInstant);
+
+            cancelAllMinTimeCheckTasks();
+            minTimeCheckTasks.add(
+                minTimeCheckScheduler.schedule(
+                    this::getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded,
+                    // make sure just in case that we always schedule something in the future
+                    Math.max(dif.toMillis(), 1)
+                )
+            );
+        }
+
+        return hasBeenMinTimeBeforeRestart;
+    }
+
+    private void cancelAllMinTimeCheckTasks() {
+        for (ScheduledFuture<?> task : minTimeCheckTasks) {
+            task.cancel(false);
+        }
+        minTimeCheckTasks.clear();
     }
 
     @Override
     public void onConfigUpdated(Config config) {
         // TODO handle clock updating
         this.config = config;
+        tpsTracker.updateConfig(config);
+        this.hasBeenMinTimeBeforeRestart = getHasBeenMinTimeBeforeRestartAndScheduleUpdateIfNeeded();
         setupQueueForScheduledTimes();
     }
 
@@ -56,6 +104,33 @@ public class RestartProcessorImpl implements RestartProcessor {
 
             restartScheduler.scheduleRestartWithMessages(null, config.getRestartCommandMessages());
             currentRestartType = RestartType.MANUAL;
+        } finally {
+            mutex.unlock();
+        }
+    }
+
+    @Override
+    public void onServerTick(long avgTickTimeNanos) {
+        if (config.shouldRestartForTps()) {
+            tpsTracker.recordTick(avgTickTimeNanos);
+            if (hasBeenMinTimeBeforeRestart && tpsTracker.needToRestart() && currentRestartType != RestartType.DYNAMIC) {
+                triggerDynamicRestart();
+            }
+        }
+    }
+
+    private void triggerDynamicRestart() {
+        mutex.lock();
+        try {
+            // Manual and already-triggered dynamic restarts take precedence
+            if (currentRestartType == RestartType.MANUAL || currentRestartType == RestartType.DYNAMIC) {
+                return;
+            }
+            AutoRestartReloaded.LOGGER.info("Scheduling dynamic restart due to sustained low TPS");
+            restartScheduler.cancelAll();
+            restartScheduler.scheduleRestartWithMessages(null, config.getDynamicRestartMessages());
+            currentRestartType = RestartType.DYNAMIC;
+            tpsTracker.reset();
         } finally {
             mutex.unlock();
         }
@@ -101,6 +176,6 @@ public class RestartProcessorImpl implements RestartProcessor {
     }
 
     private enum RestartType {
-        NONE, MANUAL, SCHEDULED
+        NONE, MANUAL, SCHEDULED, DYNAMIC
     }
 }

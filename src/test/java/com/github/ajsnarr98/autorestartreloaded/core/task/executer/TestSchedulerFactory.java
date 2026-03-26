@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.mockito.Mockito.spy;
 
@@ -33,6 +34,12 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
      * List of spy'ed schedulers.
      */
     public List<TestScheduler> schedulers = new ArrayList<>();
+
+    public List<TestScheduler> schedulers(SchedulerFactory.Type type) {
+        return schedulers.stream()
+            .filter(scheduler -> scheduler.getType() == type)
+            .toList();
+    }
 
     /**
      * Sets up this scheduler factory to create schedulers that advance in time
@@ -59,8 +66,8 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
     }
 
     @Override
-    public Scheduler newDaemonThreadScheduler() {
-        TestScheduler scheduler = spy(new TestScheduler(clock));
+    public Scheduler newDaemonThreadScheduler(Type type) {
+        TestScheduler scheduler = spy(new TestScheduler(type, clock));
         clock.addOnTimeChangedListener(scheduler);
         schedulers.add(scheduler);
         return scheduler;
@@ -79,11 +86,19 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
 
     public static class TestScheduler implements Scheduler, TestClock.TimeChangedListener {
 
+        private final ReentrantLock mutex = new ReentrantLock();
         public List<TestFuture<?>> futures = new ArrayList<>();
         private TestClock clock;
+        private Type type;
 
-        public TestScheduler(TestClock clock) {
+        public TestScheduler(Type type, TestClock clock) {
             this.clock = clock;
+            this.type = type;
+        }
+
+        @Override
+        public Type getType() {
+            return type;
         }
 
         @Override
@@ -91,7 +106,9 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
             TestFuture<?> toSchedule = new TestFuture<>(
                 task, clock.instant().plus(Duration.ofMillis(delayMs)), clock
             );
+            mutex.lock();
             futures.add(toSchedule);
+            mutex.unlock();
             return toSchedule;
         }
 
@@ -102,6 +119,7 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
         @Override
         public void onTimeUpdated(TestClock clock) {
             // run all tasks scheduled for before this time
+            mutex.lock();
             this.clock = clock;
             Iterator<TestFuture<?>> it = futures.iterator();
             TestFuture<?> next;
@@ -119,6 +137,7 @@ public class TestSchedulerFactory implements SchedulerFactory, TestClock.TimeCha
                     it.remove();
                 }
             }
+            mutex.unlock();
         }
     }
 

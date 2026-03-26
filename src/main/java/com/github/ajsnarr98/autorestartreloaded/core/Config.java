@@ -174,10 +174,10 @@ public class Config {
     }
 
     public RestartMessages getDynamicRestartMessages() {
-        return scheduledRestartMessages;
+        return dynamicRestartMessages;
     }
 
-    public boolean isShouldRestartForTps() {
+    public boolean shouldRestartForTps() {
         return shouldRestartForTps;
     }
 

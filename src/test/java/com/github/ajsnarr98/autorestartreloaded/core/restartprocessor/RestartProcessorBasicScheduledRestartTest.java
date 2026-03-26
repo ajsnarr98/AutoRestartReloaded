@@ -41,10 +41,10 @@ public class RestartProcessorBasicScheduledRestartTest extends BaseRestartProces
         setTime(instant);
         RestartProcessor restartProcessor = getRestartProcessor();
 
-        verify(schedulerFactory.schedulers.getFirst(), times(expectedScheduledDelays.length))
+        verify(assertRestartScheduler(), times(expectedScheduledDelays.length))
             .schedule(any(), anyLong());
         for (long delay : expectedScheduledDelays) {
-            verify(schedulerFactory.schedulers.getFirst()).schedule(any(), eq(delay));
+            verify(assertRestartScheduler()).schedule(any(), eq(delay));
         }
 
         advanceTimeUntil1SecondBeforeFirstMessage.run();
@@ -494,7 +494,7 @@ public class RestartProcessorBasicScheduledRestartTest extends BaseRestartProces
         RestartProcessor restartProcessor = getRestartProcessor();
         advanceTimeBy(Duration.ofDays(1));
 
-        verify(schedulerFactory.schedulers.getFirst(), times(0))
+        verify(assertRestartScheduler(), times(0))
             .schedule(any(), anyLong());
 
         verify(serverContext, times(0)).runCommand(anyString());
@@ -512,7 +512,7 @@ public class RestartProcessorBasicScheduledRestartTest extends BaseRestartProces
         setTime(Instant.parse("2025-12-03T12:59:59.00-05:00"));
         RestartProcessor restartProcessor = getRestartProcessor();
 
-        verify(schedulerFactory.schedulers.getFirst(), times(1))
+        verify(assertRestartScheduler(), times(1))
             .schedule(any(), anyLong());
 
         verify(serverContext, times(0)).runCommand(anyString());
@@ -537,7 +537,7 @@ public class RestartProcessorBasicScheduledRestartTest extends BaseRestartProces
         setTime(Instant.parse("2025-12-03T13:00:00.00-05:00"));
         RestartProcessor restartProcessor = getRestartProcessor();
 
-        verify(schedulerFactory.schedulers.getFirst(), times(1))
+        verify(assertRestartScheduler(), times(1))
             .schedule(any(), anyLong());
 
         verify(serverContext, times(0)).runCommand(anyString());

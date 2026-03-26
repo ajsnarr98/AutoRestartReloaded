@@ -3,6 +3,7 @@ package com.github.ajsnarr98.autorestartreloaded.core;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.ServerContext;
 import com.github.ajsnarr98.autorestartreloaded.core.task.DefaultTaskProvider;
 import com.github.ajsnarr98.autorestartreloaded.core.task.QueuedTaskProvider;
+import com.github.ajsnarr98.autorestartreloaded.core.task.executer.SchedulerFactory;
 import com.github.ajsnarr98.autorestartreloaded.core.task.executer.TestSchedulerFactory;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class BaseRestartProcessorTest {
@@ -56,6 +58,21 @@ public class BaseRestartProcessorTest {
         "2: Restarting in 2 seconds...",
         "1: Restarting in 1 second..."
     );
+
+    protected SchedulerFactory.Scheduler assertRestartScheduler() {
+        return assertSchedulerForType(SchedulerFactory.Type.RESTART);
+    }
+
+    protected SchedulerFactory.Scheduler assertMinTimeCheckScheduler() {
+        return assertSchedulerForType(SchedulerFactory.Type.MIN_TIME_CHECKER);
+    }
+
+    private SchedulerFactory.Scheduler assertSchedulerForType(SchedulerFactory.Type type) {
+        assertThat(schedulerFactory.schedulers(type).size())
+            .as("Before command trigger")
+            .isEqualTo(1);
+        return schedulerFactory.schedulers(type).getFirst();
+    }
 
     public class TestConfigBuilder extends Config.Builder {
         @Override

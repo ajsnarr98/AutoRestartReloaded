@@ -2,7 +2,7 @@ package com.github.ajsnarr98.autorestartreloaded.fabric;
 
 //? fabric {
 
-/*import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
@@ -12,6 +12,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 
@@ -24,7 +25,7 @@ public class FabricEntrypoint implements ModInitializer {
         ConfigSpec.load(FabricLoader.getInstance().getConfigDir());
         Config config = ConfigSpec.readConfig();
 
-        if (config.isCommandEnabled()) {
+        if (config.isRestartCommandEnabled()) {
             CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
                 AutoRestartReloaded.LOGGER.debug("registering /restart command");
                 dispatcher.register(
@@ -45,6 +46,10 @@ public class FabricEntrypoint implements ModInitializer {
             );
         });
 
+        ServerTickEvents.END_SERVER_TICK.register(server ->
+            AutoRestartReloaded.getInstance().onServerTick(server.getAverageTickTimeNanos())
+        );
+
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             AutoRestartReloaded.LOGGER.debug("Server stopped event!");
             try {
@@ -55,4 +60,4 @@ public class FabricEntrypoint implements ModInitializer {
         });
     }
 }
-*///?}
+//?}
