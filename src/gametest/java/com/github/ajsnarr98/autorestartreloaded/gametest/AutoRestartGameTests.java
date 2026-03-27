@@ -110,6 +110,55 @@ public class AutoRestartGameTests implements CustomTestMethodInvoker {
     }
 
     // -------------------------------------------------------------------------
+    // Scheduled restart tests
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifies that a scheduled restart (via cron config) eventually calls
+     * {@code runCommand("stop")} on the injected {@link FakeServerContext}.
+     *
+     * <p>With {@link ImmediateSchedulerFactory} all tasks run at 0 ms delay,
+     * so the stop fires within the first tick.
+     */
+    @GameTest(maxTicks = 100)
+    public void testScheduledRestartCallsStop(GameTestHelper helper) {
+        String expectedRestartMessage = "scheduled restart message";
+        Config testConfig = new Config.Builder()
+            .restartSchedule(List.of("* * * * *"))
+            .rawTimezone("UTC+0")
+            .scheduledRestartMessages(List.of(expectedRestartMessage))
+            .restartCommandMessages(List.of("restart command message"))
+            .dynamicRestartMessages(List.of("dynamic restart message"))
+            .minMinutesBeforeAutoRestart(0)
+            .shouldRestartForTps(false)
+            .lowTpsMinMinutes(1.0)
+            .minTpsLevel(10.0)
+            .commandPermissionLevel(4)
+            .restartCommandEnabled(true)
+            .build();
+        AutoRestartReloaded.getInstance().onConfigUpdated(testConfig);
+
+        helper.succeedWhen(() -> {
+            boolean hasExpectedRestartMessage = !TEST_SERVER_CONTEXT.getCommands().contains(
+                String.format("tellraw @a {\"text\":\"%s\",\"color\":\"yellow\"}", expectedRestartMessage)
+            );
+            if (!hasExpectedRestartMessage) {
+                helper.fail(String.format(
+                    "'%s' message not yet recorded in TestServerContext",
+                    expectedRestartMessage
+                ));
+            }
+            int numStopCommands = TEST_SERVER_CONTEXT.getCommands().stream().filter(text -> text.equals("stop")).toList().size();
+            if (numStopCommands < 1) {
+                helper.fail("'stop' command not yet recorded in TestServerContext");
+            }
+            if (numStopCommands > 1) {
+                helper.fail("More than one 'stop' command recorded in TestServerContext");
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // Command tests
     // -------------------------------------------------------------------------
 
@@ -131,19 +180,18 @@ public class AutoRestartGameTests implements CustomTestMethodInvoker {
      * Triggers the /restart command and asserts that the mod eventually calls
      * {@code runCommand("stop")} on the injected {@link FakeServerContext}.
      *
-     * <p>The config is overridden before triggering to remove all pre-restart messages,
-     * so the stop task is scheduled ~1 second later (one lead-time unit).
-     * At 20 TPS, {@code maxTicks=100} gives 5 seconds of wall-clock tolerance.
+     * <p>With {@link ImmediateSchedulerFactory} all tasks run at 0 ms delay,
+     * so the stop fires within the first tick of the command being run.
      */
     @GameTest(maxTicks = 100)
     public void testRestartCommandCallsStop(GameTestHelper helper) {
-        // Use a minimal config with no messages so the stop fires in ~1 second.
+        String expectedRestartMessage = "restart command message";
         Config testConfig = new Config.Builder()
             .restartSchedule(List.of())
             .rawTimezone("UTC+0")
-            .scheduledRestartMessages(List.of())
-            .restartCommandMessages(List.of())
-            .dynamicRestartMessages(List.of())
+            .scheduledRestartMessages(List.of("scheduled restart message"))
+            .restartCommandMessages(List.of(expectedRestartMessage))
+            .dynamicRestartMessages(List.of("dynamic restart message"))
             .minMinutesBeforeAutoRestart(0)
             .shouldRestartForTps(false)
             .lowTpsMinMinutes(1.0)
@@ -160,8 +208,21 @@ public class AutoRestartGameTests implements CustomTestMethodInvoker {
         // stop task after ~1000 ms (~20 ticks). helper.fail() throws GameTestAssertException,
         // which the framework catches and retries next tick; returning normally causes success.
         helper.succeedWhen(() -> {
-            if (!TEST_SERVER_CONTEXT.getCommands().contains("stop")) {
+            boolean hasExpectedRestartMessage = !TEST_SERVER_CONTEXT.getCommands().contains(
+                String.format("tellraw @a {\"text\":\"%s\",\"color\":\"yellow\"}", expectedRestartMessage)
+            );
+            if (!hasExpectedRestartMessage) {
+                helper.fail(String.format(
+                    "'%s' message not yet recorded in TestServerContext",
+                    expectedRestartMessage
+                ));
+            }
+            int numStopCommands = TEST_SERVER_CONTEXT.getCommands().stream().filter(text -> text.equals("stop")).toList().size();
+            if (numStopCommands < 1) {
                 helper.fail("'stop' command not yet recorded in TestServerContext");
+            }
+            if (numStopCommands > 1) {
+                helper.fail("More than one 'stop' command recorded in TestServerContext");
             }
         });
     }

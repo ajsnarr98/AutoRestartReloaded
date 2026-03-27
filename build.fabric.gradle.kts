@@ -104,35 +104,35 @@ java {
 }
 
 tasks {
+    val sharedProps = mapOf(
+        "id" to project.property("mod.id"),
+        "name" to project.property("mod.id"),
+        "version" to project.property("mod.version"),
+        "minecraft_version_range" to project.property("deps.modloader-mc-version-range"),
+        "fabric" to project.property("deps.fabric-loader-range"),
+        "neoforge" to project.property("deps.neoforge"),
+        "license" to project.property("mod.license"),
+        "author" to project.property("mod.author"),
+        "description" to project.property("mod.description"),
+    )
+    val mixinJava = "JAVA_${requiredJava.majorVersion}"
+
     processResources {
         exclude("**/neoforge.mods.toml")
-
-        inputs.property("id", project.property("mod.id"))
-        inputs.property("name", project.property("mod.name"))
-        inputs.property("version", project.property("mod.version"))
-        inputs.property("minecraft_version_range", project.property("deps.modloader-mc-version-range"))
-        inputs.property("fabric", project.property("deps.fabric-loader-range"))
-        inputs.property("neoforge", project.property("deps.neoforge"))
-        inputs.property("license", project.property("mod.license"))
-        inputs.property("author", project.property("mod.author"))
-        inputs.property("description", project.property("mod.description"))
-
-        val props = mapOf(
-            "id" to project.property("mod.id"),
-            "name" to project.property("mod.id"),
-            "version" to project.property("mod.version"),
-            "minecraft_version_range" to project.property("deps.modloader-mc-version-range"),
-            "fabric" to project.property("deps.fabric-loader-range"),
-            "neoforge" to project.property("deps.neoforge"),
-            "license" to project.property("mod.license"),
-            "author" to project.property("mod.author"),
-            "description" to project.property("mod.description"),
-        )
-
-        filesMatching("fabric.mod.json") { expand(props) }
-
-        val mixinJava = "JAVA_${requiredJava.majorVersion}"
+        sharedProps.forEach { (k, v) -> inputs.property(k, v) }
+        filesMatching("fabric.mod.json") { expand(sharedProps) }
         filesMatching("*.mixins.json") { expand("java" to mixinJava) }
+    }
+
+    // Process resources for gametest build
+    val processGametestResources = named<ProcessResources>("processGametestResources") {
+        sharedProps.forEach { (k, v) -> inputs.property(k, v) }
+        filesMatching("fabric.mod.json") { expand(sharedProps) }
+        filesMatching("*.mixins.json") { expand("java" to mixinJava) }
+    }
+
+    named("runGameTest") {
+        dependsOn(processGametestResources)
     }
 
     // Builds the version into a shared folder in `build/libs/${mod version}/`

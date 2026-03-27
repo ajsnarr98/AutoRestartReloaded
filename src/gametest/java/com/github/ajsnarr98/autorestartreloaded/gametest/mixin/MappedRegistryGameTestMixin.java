@@ -35,6 +35,7 @@ import java.lang.reflect.Method;
 @Mixin(MappedRegistry.class)
 public abstract class MappedRegistryGameTestMixin<T> {
 
+    //? if minecraft: =1.21.10 {
     @Shadow private boolean frozen;
     @Shadow private ResourceKey<? extends Registry<T>> key;
 
@@ -79,4 +80,6 @@ public abstract class MappedRegistryGameTestMixin<T> {
             }
         }
     }
+
+    //?}
 }
