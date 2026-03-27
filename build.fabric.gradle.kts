@@ -31,6 +31,15 @@ repositories {
     maven("https://repo.sleeping.town/" )
 }
 
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "${property("mod.id")}"
+        enableGameTests = true
+        eula = true
+    }
+}
+
 dependencies {
     /**
      * Fetches only the required Fabric API modules to not waste time downloading all of them for each version.
@@ -62,6 +71,8 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:${property("deps.mockito")}")
     testImplementation("org.assertj:assertj-core:${property("deps.assertj")}")
+
+    "modGametestImplementation"(fabricApi.module("fabric-gametest-api-v1", property("deps.fabric-api") as String))
 }
 
 tasks.test {

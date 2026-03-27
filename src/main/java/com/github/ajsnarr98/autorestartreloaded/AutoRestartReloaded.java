@@ -52,6 +52,10 @@ public class AutoRestartReloaded {
         this.restartProcessor.triggerRestartForCommand();
     }
 
+    public void onConfigUpdated(Config config) {
+        this.restartProcessor.onConfigUpdated(config);
+    }
+
     public void onServerTick(long avgTickTimeNanos) {
         this.restartProcessor.onServerTick(avgTickTimeNanos);
     }

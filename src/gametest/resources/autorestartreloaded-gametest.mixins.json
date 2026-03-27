@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "com.github.ajsnarr98.autorestartreloaded.gametest.mixin",
+  "compatibilityLevel": "${java}",
+  "mixins": [
+    "MappedRegistryGameTestMixin"
+  ]
+}
