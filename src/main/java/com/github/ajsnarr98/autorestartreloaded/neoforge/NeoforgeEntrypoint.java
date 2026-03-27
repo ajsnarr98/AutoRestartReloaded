@@ -2,7 +2,7 @@ package com.github.ajsnarr98.autorestartreloaded.neoforge;
 
 //? neoforge {
 
-/*import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
@@ -80,4 +80,4 @@ public class NeoforgeEntrypoint {
         }
     }
 }
-*///?}
+//?}

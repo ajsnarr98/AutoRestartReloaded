@@ -2,7 +2,7 @@ package com.github.ajsnarr98.autorestartreloaded.fabric;
 
 //? fabric {
 
-import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
+/*import com.github.ajsnarr98.autorestartreloaded.AutoRestartReloaded;
 import com.github.ajsnarr98.autorestartreloaded.core.Config;
 import com.github.ajsnarr98.autorestartreloaded.core.ConfigSpec;
 import com.github.ajsnarr98.autorestartreloaded.core.servercontext.RealServerContext;
@@ -25,16 +25,16 @@ import java.util.function.Function;
 
 public class FabricEntrypoint implements ModInitializer {
 
-    /**
+    /^*
      * Allows game tests to replace the real server context with a test double.
      * Set this before the server starts (e.g. in a fabric-gametest entrypoint constructor).
-     */
+     ^/
     public static Function<MinecraftServer, ServerContext> serverContextFactory = RealServerContext::new;
 
-    /**
+    /^*
      * Allows game tests to replace the real scheduler factory with a test double.
      * Set this before the server starts (e.g. in a fabric-gametest entrypoint constructor).
-     */
+     ^/
     public static SchedulerFactory schedulerFactory = new DefaultSchedulerFactory();
 
     @Override
@@ -77,4 +77,4 @@ public class FabricEntrypoint implements ModInitializer {
         });
     }
 }
-//?}
+*///?}

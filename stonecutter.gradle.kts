@@ -6,7 +6,7 @@ plugins {
     // id("me.modmuss50.mod-publish-plugin") version "1.0.+" apply false
 }
 
-stonecutter active "1.21.10-fabric"
+stonecutter active "1.21.10-neoforge"
 
 /*
 stonecutter tasks {
